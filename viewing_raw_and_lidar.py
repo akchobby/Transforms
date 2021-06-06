@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import sensor_msgs.point_cloud2 as pc2
 import subprocess
+import matplotlib.pyplot as plt
 
 def raw_to_cv(img_name):
     rows = 604
@@ -67,11 +68,16 @@ camera_matrix =  np.array([[-0.99959308,  0.02818052, -0.00442073, 0.06508126],
                             [ 0.00408373, -0.0120047,  -0.9999196,  -0.12425698],
                             [-0.02823132 ,-0.99953076,  0.01188474, -0.08094532]])
 # Instrisic matrix 
-mat = np.array([[965.044522822366, 0,960/2],
-                [0, 965.8373876276721,302],
+mat = np.array([[965.044522822366, 0,497.18057271858487],
+                [0, 965.8373876276721,312.42332843193617],
                 [0, 0, 1]])
 
 dist_coeffs = np.array([-0.3185388316275337, 0.1467501559423749, 0.002890954216910735,0.0004298879783934694])
+
+
+# Lidar Transforms
+trans_lidar_imu = [0.006, -0.012, -0.029] 
+quat_lidar_imu = [0.000, 0.000, -1.000, 0.000]
 
 # Ros bagdata
 bag = rosbag.Bag(folder+ name +"/ROS1/"+ name +".bag")
@@ -89,35 +95,55 @@ with open(folder+name+image_folder+"timestamp.txt",'ro') as file:
 # Reading data 
 img_names=[]
 for i in img_files:
-    disp = raw_to_cv(folder+name+image_folder+i.split(" ")[3].strip())
     img_names.append(folder+name+image_folder+i.split(" ")[3].strip())
     camera_stamps.append(np.float64(i.split(" ")[1].strip())/1000000.0)
     #undistorted_image = cv2.undistort(disp, camera_matrix, dist_coeffs, None)
 
+
+
+X_MAX = 8
+Y_MAX = 40
+X_MIN = -10
+Y_MIN = -10
+
+fig = plt.figure(1)
+ax = fig.add_subplot(111)
+ax.set_title("Lidar Overview")
+ax.set_xlim([X_MIN, X_MAX])
+ax.set_ylim([Y_MIN, Y_MAX])
+ax.set_autoscale_on(False)
+sct = None
 # sync of frames to lidar
 for i,lidar_msg in enumerate(lidar_msgs):
     diff, index = time_checker(lidar_stamps[i], np.array(camera_stamps), 0.0, 0.0) #36, 0.211236355189
-    if diff < 0.033:
+    if diff < 0.013:
         synced_imgs.append(img_names[index])
-        points = np.array([[p[0],p[1],p[2], 1] for p in pc2.read_points(lidar_msg, field_names=("x", "y", "z"), skip_nans=True) if p[2] > 0], dtype=np.float64) # neglect all rear points
+        points = np.array([[p[0],p[1],p[2], 1] for p in pc2.read_points(lidar_msg, field_names=("x", "y", "z"), skip_nans=True) if -p[1]> 0], dtype=np.float64) # neglect all rear points to camera
         image_points.append(np.array([np.matmul(mat,np.matmul(camera_matrix, point.T)) for point in points]))
+
+        if sct is not None:
+            sct.remove()
+        sct = ax.scatter(-points[:,0], -points[:,1], s=0.2, c="b")
+        fig.canvas.draw() 
+        plt.pause(0.05)
+
 
 dim = raw_to_cv(img_names[0]).shape
 # Video storing
-# f = cv2.VideoWriter_fourcc(*'MP4V')
-# out = cv2.VideoWriter("output_sync.mp4",f, 20, (dim[0],dim[1]))
+f = cv2.VideoWriter_fourcc(*'MJPG')
+out = cv2.VideoWriter("output_sync_check.avi",f, 10, (dim[1],dim[0]))
 # Project lidar points on to the image     
 for j,image_s in enumerate(image_points):
-    image_bounds = image_s[np.where(np.logical_and( np.logical_and(image_s[:,0] > 0 , image_s[:,0] < 960), np.logical_and(image_s[:,1] > 0 , image_s[:, 1] < 604)))]
-    blank_image =  raw_to_cv(synced_imgs[j]) #np.zeros(dim, dtype=np.uint8)
+    image_bounds = image_s[np.where(np.logical_and( np.logical_and(image_s[:,0] > 0 , image_s[:,0] < dim[1]), np.logical_and(image_s[:,1] > 0 , image_s[:, 1] < dim[0])))]
+    blank_image =  cv2.undistort(raw_to_cv(synced_imgs[j]), mat, dist_coeffs, None) #np.zeros(dim, dtype=np.uint8)
     max_z = np.max(image_bounds[:,2])
     for i in image_bounds:
-        cv2.drawMarker(blank_image, (int(i[0]), int(i[1])),(int(i[2]/max_z * 255), 0 ,int(i[2]/max_z * 255)), markerType=cv2.MARKER_STAR, markerSize=3, thickness=2, line_type=cv2.LINE_AA)
+        cv2.drawMarker(blank_image, (int(i[0]), int(i[1])),(0, 0 ,int(i[2]/max_z * 255)), markerType=cv2.MARKER_STAR, markerSize=3, thickness=2, line_type=cv2.LINE_AA)
     cv2.imshow("",blank_image)
-    #out.write(blank_image)
+    out.write(blank_image)
     cv2.waitKey(1)
 
-#out.release()
+out.release()
 cv2.destroyAllWindows()
 
 """
