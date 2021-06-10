@@ -10,10 +10,8 @@ def rosmsg_to_list_stamps(bag, camera_left_topic, lidar_topic="/os_cloud_node/po
     return cam_left, lidar
 
 
-def time_checker(time, time_list, offset1, offset2):
-    time_list = np.array(time_list) + offset2
-    diff= np.array([abs((time+offset1 -i)) for i in time_list])
-    return np.min(diff)
+def time_checker(time, time_list):
+    return np.min([abs((time-i)) for i in time_list])
 
 def restamp_rosbag(bag_name, topic_list, offset):
     with rosbag.Bag(bag_name + "_restamped_lidar_utc_offset.bag", 'w') as outbag:
@@ -25,7 +23,7 @@ def restamp_rosbag(bag_name, topic_list, offset):
 
 def tai_utc_offset_rosbag(bag_name, topic_list=["/os_cloud_node/points", "/os_cloud_node/imu" ] ,on_system=False):
     if not on_system:
-        utc_offset = rospy.Duration.from_sec(36) # hard coded value based on current ptp setup
+        utc_offset = rospy.Duration.from_sec(36) # hard coded value based on current ptp setup 36
         restamp_rosbag(bag_name, topic_list, utc_offset)
     else:
         lines = subprocess.Popen(["sudo pmc -u -b 0 'get TIME_PROPERTIES_DATA_SET' | grep currentUtc"],shell=True, stdout=subprocess.PIPE).communicate()[0]
@@ -43,8 +41,8 @@ def tai_utc_offset_rosbag(bag_name, topic_list=["/os_cloud_node/points", "/os_cl
 def main():
 
     # Some parameters
-    name= sys.argv[2]#"Recording_2021-02-10_16-33-04_hyslam_demo"
     folder = sys.argv[1] #"/home/hyslam/Datasets/" 
+    name= sys.argv[2]  #"Recording_2021-02-10_16-33-04_hyslam_demo"
     system_flag = bool(int(sys.argv[3]))
 
     # Ros bagdata
@@ -54,12 +52,10 @@ def main():
     # First Check
     cnt=0 
     for stamp in lidar_unstamped:
-        diff = time_checker(stamp, cam_msgs, 0.0,0.0) #0.211235
+        diff = time_checker(stamp, cam_msgs) #0.211235
         if diff < 0.013:
             cnt+=1
-        
-
-
+    
     #  Restamping if needed
     if (float(cnt)/float(len(lidar_unstamped))) < 0.9:
         del lidar_unstamped[:] 
@@ -71,12 +67,12 @@ def main():
 
         cnt=0
         for stamp in lidar_stamped:
-            diff = time_checker(stamp, cam_msgs, 0.0,0.0)#0.211235
+            diff = time_checker(stamp, cam_msgs)
             if diff < 0.013:
                 cnt+=1
-
-        assert float(cnt)/float(len(lidar_stamped)) > 0.9, "[Lidar] Failed! after offset bag not synced, sync_cnt:{} msgs_cnt:{}".format(cnt, len(lidar_stamped))
-        print("Lidar Restamp sucessful :)")
+        
+        assert float(cnt)/float(len(lidar_stamped)) > 0.95, "[Lidar] Failed! after offset bag not synced, sync_cnt:{} msgs_cnt:{}".format(cnt, len(lidar_stamped))
+        print("[Lidar] Restamp sucessful :)")
     print("[Lidar] Stamp check done")
 
 if __name__=="__main__":
