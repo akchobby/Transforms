@@ -4,24 +4,16 @@ import numpy as np
 import subprocess
 import sys
 
-def rosmsg_to_list_stamps(bag, camera_left_topic, camera_right_topic, lidar_topic="/os_cloud_node/points"):
-    cam_left=[]
-    cam_right=[]
-    lidar=[]
-    for topic, msg, t in bag.read_messages():
-        if topic == camera_left_topic:
-            cam_left.append(msg.header.stamp.to_sec())
-        elif topic == camera_right_topic:
-            cam_right.append(msg.header.stamp.to_sec())
-        elif topic == lidar_topic:
-            lidar.append(msg.header.stamp.to_sec())
-    return cam_left, cam_right, lidar
+def rosmsg_to_list_stamps(bag, camera_left_topic, lidar_topic="/os_cloud_node/points"):
+    cam_left = [msg.header.stamp.to_sec() for topic, msg, t in bag.read_messages()  if topic == camera_left_topic]
+    lidar = [msg.header.stamp.to_sec() for topic, msg, t in bag.read_messages()  if topic == lidar_topic]
+    return cam_left, lidar
 
 
 def time_checker(time, time_list, offset1, offset2):
     time_list = np.array(time_list) + offset2
     diff= np.array([abs((time+offset1 -i)) for i in time_list])
-    return np.min(diff), np.argmin(diff)
+    return np.min(diff)
 
 def restamp_rosbag(bag_name, topic_list, offset):
     with rosbag.Bag(bag_name + "_restamped_lidar_utc_offset.bag", 'w') as outbag:
@@ -57,12 +49,12 @@ def main():
 
     # Ros bagdata
     bag = rosbag.Bag(folder+ name +"/ROS1/"+ name +".bag")
-    cam_msgs, _, lidar_unstamped = rosmsg_to_list_stamps(bag, "/gmsl_video1_ros1/image_raw", None)
+    cam_msgs, lidar_unstamped = rosmsg_to_list_stamps(bag, "/gmsl_video1_ros1/image_raw")
 
     # First Check
     cnt=0 
     for stamp in lidar_unstamped:
-        diff, _ = time_checker(stamp, cam_msgs, 0.0,0.0)#0.211235
+        diff = time_checker(stamp, cam_msgs, 0.0,0.0) #0.211235
         if diff < 0.013:
             cnt+=1
         
@@ -70,19 +62,20 @@ def main():
 
     #  Restamping if needed
     if (float(cnt)/float(len(lidar_unstamped))) < 0.9:
-        print("[Lidar] More than 10per cent out of sync, restamping")
+        del lidar_unstamped[:] 
+        print("[Lidar] More than 10per cent out of sync, restamping ...")
         tai_utc_offset_rosbag(folder+ name +"/ROS1/"+ name, on_system=system_flag)
 
         bag_restamped = rosbag.Bag(folder+ name +"/ROS1/"+ name +"_restamped_lidar_utc_offset.bag")
-        _, _, lidar_stamped = rosmsg_to_list_stamps(bag_restamped, None, None)
+        _, lidar_stamped = rosmsg_to_list_stamps(bag_restamped, None)
 
         cnt=0
         for stamp in lidar_stamped:
-            diff, _ = time_checker(stamp, cam_msgs, 0.0,0.0)#0.211235
-            print(diff)
+            diff = time_checker(stamp, cam_msgs, 0.0,0.0)#0.211235
             if diff < 0.013:
                 cnt+=1
-        assert float(cnt)/float(len(lidar_unstamped)) > 0.9, "[Lidar] Failed! after offset bag not synced"
+
+        assert float(cnt)/float(len(lidar_stamped)) > 0.9, "[Lidar] Failed! after offset bag not synced, sync_cnt:{} msgs_cnt:{}".format(cnt, len(lidar_stamped))
         print("Lidar Restamp sucessful :)")
     print("[Lidar] Stamp check done")
 
