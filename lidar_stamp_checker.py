@@ -4,10 +4,8 @@ import numpy as np
 import subprocess
 import sys
 
-def rosmsg_to_list_stamps(bag, camera_left_topic, lidar_topic="/os_cloud_node/points"):
-    cam_left = [msg.header.stamp.to_sec() for topic, msg, t in bag.read_messages()  if topic == camera_left_topic]
-    lidar = [msg.header.stamp.to_sec() for topic, msg, t in bag.read_messages()  if topic == lidar_topic]
-    return cam_left, lidar
+def rosmsg_to_list_stamps(bag, topic_name="/os_cloud_node/points"):
+    return [msg.header.stamp.to_sec() for topic, msg, t in bag.read_messages()  if topic == topic_name]
 
 
 def time_checker(time, time_list):
@@ -47,7 +45,8 @@ def main():
 
     # Ros bagdata
     bag = rosbag.Bag(folder+ name +"/ROS1/"+ name +".bag")
-    cam_msgs, lidar_unstamped = rosmsg_to_list_stamps(bag, "/gmsl_video1_ros1/image_raw")
+    cam_msgs = rosmsg_to_list_stamps(bag, "/gmsl_video1_ros1/image_raw")
+    lidar_unstamped = rosmsg_to_list_stamps(bag)
 
     # First Check
     cnt=0 
@@ -63,7 +62,7 @@ def main():
         tai_utc_offset_rosbag(folder+ name +"/ROS1/"+ name, on_system=system_flag)
 
         bag_restamped = rosbag.Bag(folder+ name +"/ROS1/"+ name +"_restamped_lidar_utc_offset.bag")
-        _, lidar_stamped = rosmsg_to_list_stamps(bag_restamped, None)
+        lidar_stamped = rosmsg_to_list_stamps(bag_restamped)
 
         cnt=0
         for stamp in lidar_stamped:
