@@ -34,6 +34,13 @@ def tai_utc_offset_rosbag(bag_name, topic_list=["/os_cloud_node/points", "/os_cl
         else:
             print("[ERROR]: ptp clock not running")
 
+def frequency_check(stamp_list,freq_ms):
+    cnt=0
+    for i,stamp in enumerate(stamp_list ):
+        if abs(stamp_list[i-1]- stamp) < (freq_ms+1e-4)  :
+            cnt +=1
+    return abs(cnt - len(stamp_list)) <  10
+
 
 
 def main():
@@ -42,6 +49,7 @@ def main():
     folder = sys.argv[1] #"/home/hyslam/Datasets/" 
     name= sys.argv[2]  #"Recording_2021-02-10_16-33-04_hyslam_demo"
     system_flag = bool(int(sys.argv[3]))
+    freq_lidar = float(sys.argv[4]) #0.1 #ms
 
     # Ros bagdata
     bag = rosbag.Bag(folder+ name +"/ROS1/"+ name +".bag")
@@ -49,6 +57,10 @@ def main():
     lidar_unstamped = rosmsg_to_list_stamps(bag)
 
     # First Check
+    # Frequency Check 
+    assert frequency_check(lidar_unstamped, freq_lidar), "[Lidar] Mutiple lidar frames[>10] dropped, aborting stamp check"
+    print("[Lidar] Frequency is okay")
+    # Camera sync check 
     cnt=0 
     for stamp in lidar_unstamped:
         diff = time_checker(stamp, cam_msgs) #0.211235
