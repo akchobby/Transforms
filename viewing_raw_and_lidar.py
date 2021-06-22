@@ -137,6 +137,7 @@ for j,image_s in enumerate(image_points):
     image_bounds = image_s[np.where(np.logical_and( np.logical_and(image_s[:,0] > 0 , image_s[:,0] < dim[1]), np.logical_and(image_s[:,1] > 0 , image_s[:, 1] < dim[0])))]
     blank_image =  cv2.undistort(raw_to_cv(synced_imgs[j]), mat, dist_coeffs, None) #np.zeros(dim, dtype=np.uint8)
     max_z = np.max(image_bounds[:,2])
+
     for i in image_bounds:
         cv2.drawMarker(blank_image, (int(i[0]), int(i[1])),(0, 0 ,int(i[2]/max_z * 255)), markerType=cv2.MARKER_STAR, markerSize=3, thickness=2, line_type=cv2.LINE_AA)
     cv2.imshow("",blank_image)
@@ -175,6 +176,9 @@ T_ic:  (cam0 to imu0):
  [ 0.02818052 -0.0120047  -0.99953076 -0.08423302]
  [-0.00442073 -0.9999196   0.01188474 -0.12299727]
  [ 0.          0.          0.          1.        ]]
+
+rotMat, _ = cv2.Rodrigues(self.quaternion_rotation_matrix(quat_lidar))
+image_points, jacobian = cv2.projectPoints(lPc, rotMat, np.array(position, dtype = np.float64), self.camera_matrix, self.dist_coeffs)
 """
 
 print("completed")

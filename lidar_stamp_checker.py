@@ -79,6 +79,7 @@ def main():
         cnt=0
         for stamp in lidar_stamped:
             diff = time_checker(stamp, cam_msgs)
+            print(diff)
             if diff < 0.013:
                 cnt+=1
         
