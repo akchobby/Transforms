@@ -5,24 +5,9 @@ import math
 
 
 
-
-def euler_to_quaternion():
-    pass
-
-def view_quaternion_as_axes():
-    pass
-
-def euler_to_rotation_matrix():
-    pass
-
-def quaternion_to_rotation_matrix():
-    pass
-
-
-
 class Quaternion:
 
-    def __init__(self, data, deg=False):
+    def __init__(self, data, deg=False, rvec=False):
         """
         Function takes a list which has 
         - quaternion values in the order x,y,z,w
@@ -32,7 +17,15 @@ class Quaternion:
         """
         data = np.array(data)
         if len(data.shape) < 2:
-            if len(data) == 4:
+            if rvec:
+                angle = math.sqrt(data[0]**2+data[1]**2+data[2]**2)
+                self.x = data[0]/angle * math.sin(angle/2)
+                self.y = data[1]/angle * math.sin(angle/2)
+                self.z = data[2]/angle * math.sin(angle/2)
+                self.w = math.cos(angle/2)
+
+
+            elif len(data) == 4:
                 self.x = data[0]
                 self.y = data[1]
                 self.z = data[2]
@@ -152,15 +145,11 @@ def plot_3d(ax, transform=None):
     ax.set_ylim(-2,2)
     ax.set_zlim(-2,2)
 
-
-    q =Quaternion([-90,0,-90], True)
+    q =Quaternion([0,-90,0], True)
     p4 = np.array(q.rotate([0.5,0,0]).to_list()[:3])
     p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
     p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
     p3 = np.array(q.rotate([0,0,1]).to_list()[:3]) + p4
-    
-
-    print(p1,p2,p3)
 
     ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
     ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
@@ -183,9 +172,9 @@ def plot_3d(ax, transform=None):
 
     
     
-q =Quaternion([-90,0,-90], True)
+q =Quaternion([1.2091995761561454, -1.2091995761561447, 1.2091995761561454], rvec=True)
+print(q.to_euler(True))
 
- 
 
 fig, ax = plt.subplots(1)
 plot_3d(ax)
