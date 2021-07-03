@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math 
+import cv2
 
 
 
@@ -18,7 +19,7 @@ class Quaternion:
         data = np.array(data)
         if len(data.shape) < 2:
             if rvec:
-                angle = math.sqrt(data[0]**2+data[1]**2+data[2]**2)
+                angle = math.sqrt(data[0]**2 + data[1]**2 + data[2]**2)
                 self.x = data[0]/angle * math.sin(angle/2)
                 self.y = data[1]/angle * math.sin(angle/2)
                 self.z = data[2]/angle * math.sin(angle/2)
@@ -46,13 +47,36 @@ class Quaternion:
                 self.z = cr * cp * sy - sr * sp * cy
 
         elif data.shape[0] == 3 and data.shape[1] == 3:
-            pass
+            tr = np.trace(data)
+            if (tr > 0):
+                S = math.sqrt(tr+1.0) * 2; 
+                self.w = 0.25 * S
+                self.x = (data[2][1] - data[1][2]) / S
+                self.y = (data[0][2] - data[2][0]) / S
+                self.z = (data[1][0] - data[0][1]) / S 
+
+            elif ((data[0][0] > data[1][1]) and (data[0][0] > data[2][2])):
+                S = math.sqrt(1.0 + data[0][0] - data[1][1] - data[2][2]) * 2
+                self.w = (data[2][1] - data[1][2]) / S
+                self.x = 0.25 * S
+                self.y = (data[0][1] + data[1][0]) / S 
+                self.z = (data[0][2] + data[2][0]) / S
+
+            elif (data[1][1] > data[2][2]):
+                S = math.sqrt(1.0 + data[1][1] - data[0][0] - data[2][2]) * 2
+                self.w = (data[0][2] - data[2][0]) / S
+                self.x = (data[0][1] + data[1][0]) / S 
+                self.y = 0.25 * S
+                self.z = (data[1][2] + data[2][1]) / S
+            else:
+                S = math.sqrt(1.0 + data[2][2] - data[0][0] - data[1][1]) * 2
+                self.w = (data[1][0] - data[0][1]) / S
+                self.x = (data[0][2] + data[2][0]) / S
+                self.y = (data[1][2] + data[2][1]) / S
+                self.z = 0.25 * S
         
         else: 
             print("[ERROR] invalid arguments")
-
-
-        
 
         self.magnitude = math.sqrt(self.x**2 + self.y**2 + self.z**2 + self.w**2)
     
@@ -145,40 +169,42 @@ def plot_3d(ax, transform=None):
     ax.set_ylim(-2,2)
     ax.set_zlim(-2,2)
 
-    q =Quaternion([0,-90,0], True)
-    p4 = np.array(q.rotate([0.5,0,0]).to_list()[:3])
-    p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
-    p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
-    p3 = np.array(q.rotate([0,0,1]).to_list()[:3]) + p4
-
-    ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
-    ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
-    ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+    q =Quaternion([0,180,0], True)
+    #q =Quaternion([1.20919958, -1.20919958, 1.20919958], rvec=True)
+    #rotMat = [[-1,0,0],[0,1,0],[0,0,-1]]
+    #q =Quaternion(rotMat)
 
 
-
-
-
-
+    # TO DO : set these correctly
     if isinstance(transform, Quaternion):
-        point = np.matmul(transform.to_euler(), np.array([[1,1,1]]).T)
+        q = transform
+        p4 = np.array(q.rotate([0.0,0.50,0]).to_list()[:3])
+        p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
+        p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
+        p3 = np.array(q.rotate([0,0,1]).to_list()[:3]) + p4
 
-        x = None
-        ax.plot([0,0,point[0]],[0,0,0],[0,0,0], color="r")
-        ax.plot([0,0,0],[0,0,[1]],[0,0,0], color="g")
-        ax.plot([0,0,0],[0,0,0],[0,0,point[2]], color="b")
+        ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
+        ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
+        ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
 
 
 
     
+if __name__=="__main__" :
     
-q =Quaternion([1.2091995761561454, -1.2091995761561447, 1.2091995761561454], rvec=True)
-print(q.to_euler(True))
+    rotMat = np.array([[0,-1,0],[0,0,-1],[1,0,0]], dtype=np.float64)
+    q =Quaternion(rotMat)
+    # q= Quaternion([1.2091995799999999, -1.2091995799999999, 1.2091995799999999], rvec=True)
+    #q =Quaternion([90.0, 90.0, 90.0], deg=True)
+    print(q)
+    print(q.to_euler(True))
+    rvec,jac = cv2.Rodrigues(rotMat) #np.array(q.to_rvec())
+    print(rvec)
 
 
-fig, ax = plt.subplots(1)
-plot_3d(ax)
-plt.show(fig)
+    fig, ax = plt.subplots(1)
+    plot_3d(ax, q)
+    plt.show(fig)
     
     
 
