@@ -117,7 +117,7 @@ class Quaternion:
     
     def to_euler(self, deg=False):
         """
-        Returns roll, pitch and yaw in rad unless 
+        Returns ZXY transform but as a list in  x,y,z order. In rad unless deg param is changed 
         """
         # roll (x-axis rotation)
         sinr_cosp = 2 * (self.w * self.x + self.y * self.z)
@@ -159,33 +159,55 @@ class Quaternion:
 
 
 
-def plot_3d(ax, transform=None):
+def plot_3d(ax, rotation=None, translation=[0.0,0.50,0]):
+
+    # origin- the axes you shall transform
+    p1 =[1,0,0]
+    p2 =[0,1,0]
+    p3 =[0,0,1]
+    p4 =[0,0,0]
+
     ax = plt.axes(projection='3d', azim=170, elev=20)
-    ax.plot([0,1],[0,0],[0,0], alpha=0.25, color="r")
-    ax.plot([0,0],[0,1],[0,0], alpha=0.25, color="g")
-    ax.plot([0,0],[0,0],[0,1], alpha=0.25,color="b")
-    ax.legend(["x","y","z"])
+    ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], alpha=0.25, color="r")
+    ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], alpha=0.25, color="g")
+    ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], alpha=0.25, color="b")
     ax.set_xlim(-2,2)
     ax.set_ylim(-2,2)
     ax.set_zlim(-2,2)
 
-    q =Quaternion([0,180,0], True)
-    #q =Quaternion([1.20919958, -1.20919958, 1.20919958], rvec=True)
-    #rotMat = [[-1,0,0],[0,1,0],[0,0,-1]]
-    #q =Quaternion(rotMat)
-
 
     # TO DO : set these correctly
-    if isinstance(transform, Quaternion):
-        q = transform
-        p4 = np.array(q.rotate([0.0,0.50,0]).to_list()[:3])
-        p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
-        p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
-        p3 = np.array(q.rotate([0,0,1]).to_list()[:3]) + p4
+    if isinstance(rotation, Quaternion):
+        q = rotation
+        p4 = np.array(q.rotate(translation).to_list()[:3])
+
+        p1 = np.array(q.rotate(p1).to_list()[:3]) + p4
+        p2 = np.array(q.rotate(p2).to_list()[:3]) + p4
+        p3 = np.array(q.rotate([p3]).to_list()[:3]) + p4
 
         ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
         ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
         ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+
+    elif isinstance(rotation, list):
+        assert len(np.array(translation).shape) > 1, "Translation list not in right format"
+        assert len(rotation) == len(translation), "Translation not provided for eah rotation"
+
+        for i, q in enumerate(rotation):
+            p4 = np.array(q.rotate(translation[i]).to_list()[:3])
+
+            p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
+            p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
+            p3 = np.array(q.rotate([0,0,1]).to_list()[:3]) + p4
+
+            ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
+            ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
+            ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+
+    ax.legend(["x","y","z"])
+
+
+
 
 
 
@@ -193,22 +215,31 @@ def plot_3d(ax, transform=None):
 if __name__=="__main__" :
     
     rotMat = np.array([[0,-1,0],[0,0,-1],[1,0,0]], dtype=np.float64)
-    q =Quaternion(rotMat)
-    # q= Quaternion([1.2091995799999999, -1.2091995799999999, 1.2091995799999999], rvec=True)
-    #q =Quaternion([90.0, 90.0, 90.0], deg=True)
-    print(q)
-    print(q.to_euler(True))
-    rvec,jac = cv2.Rodrigues(rotMat) #np.array(q.to_rvec())
-    print(rvec)
+    rotMat_cam0 = np.array([[-0.9995930750515504, 0.028180516203601146, -0.004420725673603042 ],
+                            [0.00408373330785272, -0.012004702762037862, -0.9999196018850028 ],
+                            [-0.028231320040922887, -0.9995307627172317, 0.01188473603633216 ]], dtype=np.float64)
+
+
+    t_cam0 = [0.06508125947885363, -0.12425698102638041, -0.08094531518938053]
+
+
+
+    rotMat_cam1 = np.array([[-0.999991980508952, 0.0032425627112567875, -0.002350469069725772 ],
+                            [0.0023816581389216724, 0.009648555620498319, -0.9999506153200506 ],
+                            [-0.0032197239467815653, -0.9999481942388326, -0.009656200919865136]], dtype=np.float64)
+
+    t_cam1= [-0.05880865244539242, -0.1215735034443526, -0.0856024019820022]
+
+    q1 = Quaternion(rotMat_cam0)
+    q2 = Quaternion(rotMat_cam1)
+
+    print(q1.to_rvec())
+    print(q2.to_rvec())
 
 
     fig, ax = plt.subplots(1)
-    plot_3d(ax, q)
+    plot_3d(ax, [q1,q2], [t_cam0, t_cam1])
     plt.show(fig)
-    
-    
-
-    
     
 
 
