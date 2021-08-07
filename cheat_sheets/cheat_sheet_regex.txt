@@ -1,0 +1,32 @@
+. : stands for any character, its a wild card e.g grep v.m can return "vim" and "v m"
+
+^ : an anchor to know where to start from. e.g grep ^vi returns vim and vi. when used inside [] it signifies complement of all the chars in the []
+
+$ : an anchor to indicate where the end is , simlar to endswith() .eg  grep im$ returns only vim
+
+[] : called character classes can pass all chars that could be in that position e.g re.search(r"[Pp]ython","Python"), also [a-z] ,[0-9], [A-Z] can be passed. One more intresting 
+     thing is that the sequeces can also be multiple, e.g [a-zA-Z0-9]
+
+| : used to reprsent or, e.g re.search("cat|dog",string) but it only returns the first one, instead findall cann be used.
+
+* :  now instead of the char in that position it considers any number of chars. e.g re.search(r"Py.*n","Pygmalion") returns the whole word. This behaves greedily  and takes the worst case
+
++ : Matchs one or more chars which come before it. e.g (re.search("o+l+","oolong")) returns ool
+
+? : either zero or 1 occurence of the char which comes before it e.g re.search(r"p?eachs","each") returns each 
+
+\ : is used to make special chars be normal. note sometimes it is used for some other purpose,e.g \w matched all letters number and underscore but not spaces.
+
+\d : for digits
+
+\s : for spaces
+
+\b : for word boundaries  to check only a certain sequence \b must be put at the beginning and th end
+
+() : used to capture groups, these groups can be called via the groups() method on the object returned by re.search.
+
+{} : A signifyer for number of repetitions of a pattern, if range of reps then {m,n}
+
+
+
+Note: when using regex it is preferable to use raw string declared by an r before the string.
