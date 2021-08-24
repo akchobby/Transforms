@@ -51,6 +51,28 @@ def tai_utc_offset_rosbag(bag_name, topic_list=["/os_cloud_node/points", "/os_cl
         else:
             print("[ERROR]: ptp clock not running")
 
+def project_point(point, camera_matrix):
+    """
+    Takes point in the camera frame, moves it to image plane 
+
+    Camera matrix expected:
+
+    [[fx 0 px],
+     [0 fy py],
+     [0 0  1]]
+    """
+    # convert to homogenous by dividing by z
+    point = point/point[-1,0]
+
+    # multiplying with focql length adn adding disp from center
+    img_point = np.matmul(camera_matrix, point.T)
+
+    return img_point
+
+
+
+
+
 
 # Some parameters
 name="Recording_2021-05-21_13-59-54_hyslam_recording_ros1_lidar_ros2_position_files_caml_high_speed"
@@ -120,8 +142,8 @@ for i,lidar_msg in enumerate(lidar_msgs):
         synced_imgs.append(img_names[index])
         points = np.array([[p[0],p[1],p[2], 1] for p in pc2.read_points(lidar_msg, field_names=("x", "y", "z"), skip_nans=True) if -p[1]> 0], dtype=np.float64) # neglect all rear points to camera
         
-        # TO DO: Missed to divide the points in camera frame by z_camera to get projected point: np.matmul(camera_matrix, point.T)/np.matmul(camera_matrix, point.T)[2][0]
-        image_points.append(np.array([np.matmul(mat,np.matmul(camera_matrix, point.T)) for point in points]))
+        # TO DO: Missed to divide the points in camera frame by z_camera to get projected point: np.matmul(camera_matrix, point.T)/np.matmul(camera_matrix, point.T)[2][0] now added
+        image_points.append(np.array([project_point(np.matmul(camera_matrix, point.T).T, mat) for point in points]))
 
         if sct is not None:
             sct.remove()
