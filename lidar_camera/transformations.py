@@ -212,7 +212,7 @@ def plot_3d(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]):
     # TO DO : set these correctly
     if isinstance(rotation, Quaternion):
         q = rotation
-        p4 = np.array(q.rotate(translation).to_list()[:3]) # here rotating to ensure display is spaced in default case
+        p4 = translation 
 
         p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
         p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
@@ -221,6 +221,7 @@ def plot_3d(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]):
         ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
         ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
         ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+        ax.text(p4[0],p4[1],p4[2],names[0], fontsize=9,bbox=dict(facecolor="white", alpha=0.5, pad=0.1))
 
     elif isinstance(rotation, list):
         assert len(np.array(translation).shape) > 1, "Translation list not in right format"
@@ -245,6 +246,10 @@ def plot_3d(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]):
 
 class Rotations:
     def __init__(self, angles, deg=True, order="xyz", extrinsic=True):
+        """
+        TODO : documentation of source equations
+ 
+        """
         if deg:
             angles = list(map(np.deg2rad, angles))
         if order == "xyz":
@@ -320,7 +325,7 @@ if __name__=="__main__" :
     #q1 = Quaternion(rotMat_cam0)
     #rot_mat = Rotations([180,0,45], extrinsic=True).rotation_matrix
     #q1 = Quaternion( [-1,0.0,0.0,0.0])
-    #q2 = Quaternion([0.0, 0.18334911693105377, 0.006365956667309573], deg=True) 
+    q2 = Quaternion([0.0, 45,45], deg=True) 
     #q3 = Quaternion([0.0, 30.0, 0.0], deg=True)
     #print(q2)
     #print(q1.inv().rotate(q1.rotate([0,0,0.5]).to_list()[:3]).to_list())#.to_euler(deg=True))
@@ -336,10 +341,10 @@ if __name__=="__main__" :
             [-0.7057479282673715, 1.5439415856910443e-09, -0.7084630277906626]] 
 
 
-    q1 = Quaternion(rear_lidar_rot)#Quaternion( [-0.0880986,0.0015378,0.9959589,0.0173845] )
-    q2 = Quaternion(rear_camera_rot)#Quaternion( [0.6420355,0.6648473,-0.2652181,0.2746413] )
-    q3 = Quaternion( [-0.21263111527614184,-0.21263111527614184,0.6743797400305046,0.6743797063827515] )
-    q4 = Quaternion( [0.21076748742763302,-0.21447855340451885,-0.6684690676326347, 0.6802390217781067] )
+    # q1 = Quaternion(rear_lidar_rot)#Quaternion( [-0.0880986,0.0015378,0.9959589,0.0173845] )
+    # q2 = Quaternion(rear_camera_rot)#Quaternion( [0.6420355,0.6648473,-0.2652181,0.2746413] )
+    # q3 = Quaternion( [-0.21263111527614184,-0.21263111527614184,0.6743797400305046,0.6743797063827515] )
+    # q4 = Quaternion( [0.21076748742763302,-0.21447855340451885,-0.6684690676326347, 0.6802390217781067] )
 
     t1 = [-1.6602861245985938, 0.0,1.732975221562235]
     t2 = [ -1.6532861245985937, 0.0, 1.6729752215622349]
@@ -351,7 +356,8 @@ if __name__=="__main__" :
     plot_3d_rot(ax, rear_camera_rot, t2)
     plt.show()
     
-    plot_3d(ax, [q1,q2,q3,q4], [t1,t2,t3,t4], ["rear_lidar","rear_cam","left_cam","right_cam"])
+    #plot_3d(ax, q2, t2, ["rear_camera"])
+    plot_3d(ax, q2)
     #plot_3d(ax, (q1*q3).rotate([0,0,-1]))
     plt.show()
     
