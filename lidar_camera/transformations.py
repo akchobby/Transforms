@@ -8,7 +8,7 @@ import math
 
 class Quaternion:
 
-    def __init__(self, data, deg=False, rvec=False, point=True):
+    def __init__(self, data, deg=False, rvec=False, point=False):
         """
         Function takes a list which has 
         - quaternion values in the order x,y,z,w
@@ -212,7 +212,7 @@ def plot_3d(ax, rotation=None, translation=[0.0,0.50,0]):
     # TO DO : set these correctly
     if isinstance(rotation, Quaternion):
         q = rotation
-        p4 = np.array(q.rotate(translation).to_list()[:3])
+        p4 = np.array(q.rotate(translation).to_list()[:3]) # here rotating to ensure display is spaced in default case
 
         p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
         p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
@@ -227,7 +227,7 @@ def plot_3d(ax, rotation=None, translation=[0.0,0.50,0]):
         assert len(rotation) == len(translation), "Translation not provided for eah rotation"
 
         for i, q in enumerate(rotation):
-            p4 = np.array(q.rotate(translation[i]).to_list()[:3])
+            p4 = translation[i]
 
             p1 = np.array(q.rotate([1,0,0]).to_list()[:3]) + p4
             p2 = np.array(q.rotate([0,1,0]).to_list()[:3]) + p4
@@ -268,7 +268,36 @@ class Rotations:
                  [np.sin(psi), np.cos(psi), 0],
                  [0, 0, 1]])
 
-    
+
+
+def plot_3d_rot(ax, rotation_mat=None, translation=[0,0.05,0]):
+    # origin- the axes you shall transform
+    p1 =[1,0,0]
+    p2 =[0,1,0]
+    p3 =[0,0,1]
+    p4 =[0,0,0]
+
+    ax = plt.axes(projection='3d', azim=170, elev=20)
+    ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], alpha=0.25, color="r")
+    ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], alpha=0.25, color="g")
+    ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], alpha=0.25, color="b")
+    ax.set_xlim(-2,2)
+    ax.set_ylim(-2,2)
+    ax.set_zlim(-2,2)
+
+    p4 = translation
+
+    p1 = (np.matmul(np.array(rotation_mat), np.array([[1,0,0]]).T) + np.array([translation]).T).T[0]
+    print(p1)
+    p2 =  (np.matmul(np.array(rotation_mat), np.array([[0,1,0]]).T) + np.array([translation]).T).T[0]
+    p3 =  (np.matmul(np.array(rotation_mat), np.array([[0,0,1]]).T) + np.array([translation]).T).T[0]
+
+    ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
+    ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
+    ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+
+
+
 if __name__=="__main__" :
     
     rotMat = np.array([[0,-1,0],[0,0,-1],[1,0,0]], dtype=np.float64)
@@ -288,18 +317,41 @@ if __name__=="__main__" :
     t_cam1= [-0.05880865244539242, -0.1215735034443526, -0.0856024019820022]
 
     #q1 = Quaternion(rotMat_cam0)
-    rot_mat = Rotations([180,0,45], extrinsic=True).rotation_matrix
-    q1 = Quaternion( [-1,0.0,0.0,0.0])
-    q2 = Quaternion([0.0, 0.18334911693105377, 0.006365956667309573], deg=True) 
-    q3 = Quaternion([0.0, 30.0, 0.0], deg=True)
-    print(q2)
-    print(q1.inv().rotate(q1.rotate([0,0,0.5]).to_list()[:3]).to_list())#.to_euler(deg=True))
+    #rot_mat = Rotations([180,0,45], extrinsic=True).rotation_matrix
+    #q1 = Quaternion( [-1,0.0,0.0,0.0])
+    #q2 = Quaternion([0.0, 0.18334911693105377, 0.006365956667309573], deg=True) 
+    #q3 = Quaternion([0.0, 30.0, 0.0], deg=True)
+    #print(q2)
+    #print(q1.inv().rotate(q1.rotate([0,0,0.5]).to_list()[:3]).to_list())#.to_euler(deg=True))
     #print(q2.to_rvec())
-    print((q1*q3).rotate([0,0,-1]).to_list())
+    #print((q1*q3).rotate([0,0,-1]).to_list())
 
     fig, ax = plt.subplots(1)
-    #plot_3d(ax, [q1.rotate([1,1,1]), (q1.inv()).rotate([1,1,1])], [[0.0,0.50,0], [0.0,0.0,0.5]])
-    plot_3d(ax, (q1*q3).rotate([0,0,-1]))
+    rear_lidar_rot = [[-0.9838728439172247, -0.03489949670250109, -0.17543161865701454],
+            [0.03435759679162382, -0.9993908270190958, 0.0061262071166857945],
+            [-0.175538552, -2.14972725e-17, 0.984472558]] 
+    rear_camera_rot = [[-0.02472500240085318, 0.9993908269999907, 0.02463024897463667], 
+            [0.7080314512806554, 0.03489949724959929, -0.7053180056464845],
+            [-0.7057479282673715, 1.5439415856910443e-09, -0.7084630277906626]] 
+
+
+    q1 = Quaternion(rear_lidar_rot)#Quaternion( [-0.0880986,0.0015378,0.9959589,0.0173845] )
+    q2 = Quaternion(rear_camera_rot)#Quaternion( [0.6420355,0.6648473,-0.2652181,0.2746413] )
+    q3 = Quaternion( [-0.21263111527614184,-0.21263111527614184,0.6743797400305046,0.6743797063827515] )
+    q4 = Quaternion( [0.21076748742763302,-0.21447855340451885,-0.6684690676326347, 0.6802390217781067] )
+
+    t1 = [-1.6602861245985938, 0.0,1.732975221562235]
+    t2 = [ -1.6532861245985937, 0.0, 1.6729752215622349]
+    t3 = [ -0.11797776996071918, 1.0, 2.5067800929719004]
+    t4 = [-0.13349286393377516, -1.0149782312015498, 2.5193396640847534]
+
+    #print(q1.to_euler(deg=True),q2.to_euler(deg=True))
+
+    plot_3d_rot(ax, rear_camera_rot, t2)
+    plt.show()
+    
+    plot_3d(ax, [q2], [t2])
+    #plot_3d(ax, (q1*q3).rotate([0,0,-1]))
     plt.show()
     
 """
@@ -308,4 +360,23 @@ if __name__=="__main__" :
  [-3.10968177e-03,  6.24634817e-04,  9.99994970e-01]]
 """
 
+"""
+
+- position:
+    [-1.6602861245985938, 0.0,1.732975221562235]
+  orientation:
+    [-0.0880986,0.0015378,0.9959589,0.0173845]
+- position:
+    [ -1.6532861245985937, 0.0, 1.6729752215622349]
+  orientation:
+    [0.6420355,0.6648473,-0.2652181,0.2746413]
+- position:
+    [ -0.11797776996071918, 1.0, 2.5067800929719004]
+- orientation:
+    [-0.21263111527614184,-0.21263111527614184,0.6743797400305046,0.6743797063827515]
+- position:
+    [-0.13349286393377516, -1.0149782312015498, 2.5193396640847534]
+  orientation:
+    [0.21076748742763302,-0.21447855340451885,-0.6684690676326347, 0.6802390217781067]
+"""
 
