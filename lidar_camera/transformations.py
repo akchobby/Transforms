@@ -192,7 +192,7 @@ class Quaternion:
 
 
 
-def plot_3d(ax, rotation=None, translation=[0.0,0.50,0]):
+def plot_3d(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]):
 
     # origin- the axes you shall transform
     p1 =[1,0,0]
@@ -236,6 +236,7 @@ def plot_3d(ax, rotation=None, translation=[0.0,0.50,0]):
             ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
             ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
             ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+            ax.text(p4[0],p4[1],p4[2],names[i], fontsize=9,bbox=dict(facecolor="white", alpha=0.5, pad=0.1))
 
     ax.legend(["x","y","z"])
 
@@ -350,7 +351,7 @@ if __name__=="__main__" :
     plot_3d_rot(ax, rear_camera_rot, t2)
     plt.show()
     
-    plot_3d(ax, [q2], [t2])
+    plot_3d(ax, [q1,q2,q3,q4], [t1,t2,t3,t4], ["rear_lidar","rear_cam","left_cam","right_cam"])
     #plot_3d(ax, (q1*q3).rotate([0,0,-1]))
     plt.show()
     
