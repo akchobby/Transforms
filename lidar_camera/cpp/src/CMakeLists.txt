@@ -1,3 +1,5 @@
+# Author: Anil Kumar Chavali
+
 # add any system dependencies using find command
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 

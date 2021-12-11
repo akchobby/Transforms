@@ -17,20 +17,24 @@ namespace transforms {
 
             //default
             Quaternion();
+            ~Quaternion();
+
+            //copy constructor
+            Quaternion(const Quaternion& q);
 
             // quaternion vector 
-            Quaternion(Eigen::Vector4d& v, bool point);
-            Quaternion(Eigen::Vector4d& v);
+            Quaternion(const Eigen::Vector4d& v,  bool point = false);
+            Quaternion(const Eigen::Vector3d& v); // for a point
 
             // euler angles or rvec
-            Quaternion(Eigen::Vector3d& v, bool deg, bool rvec, bool point);
+            Quaternion(const Eigen::Vector3d& v, bool deg, bool rvec);
 
 
             // create quaternion --- a matrix case
-            Quaternion(Eigen::Matrix3d& m);
+            Quaternion(const Eigen::Matrix3d& m);
 
 
-            ~Quaternion();
+            
 
 
             // Operaters ---------
@@ -42,7 +46,9 @@ namespace transforms {
             void getRotationMatrix(Eigen::Matrix3d& m);
 
             // conversions
-            void getQuaternion(Eigen::Vector4d& v);
+            Eigen::Vector4d getQuaternion() const;
+            bool getPoint() const;
+
             void getEulerAngles(Eigen::Vector3d& v);
 
 

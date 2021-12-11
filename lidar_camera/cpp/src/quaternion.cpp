@@ -16,32 +16,42 @@ Quaternion::Quaternion(){
 Quaternion::~Quaternion(){
    
 }
-// Quaternion 
-Quaternion::Quaternion(Eigen::Vector4d& v, bool point):point(point), q(v){
 
+
+Quaternion::Quaternion(const Quaternion& src):Quaternion(src.getQuaternion(), src.getPoint()){
+
+
+}
+// Quaternion 
+Quaternion::Quaternion(const Eigen::Vector3d& v):point(true){
+
+
+    q(0) = v(0);
+    q(1) = v(1);
+    q(2) = v(2);
+    q(3) = 0;
 
     magnitude = q.norm();
-    // converting to unit quat, if not point
-    if (!point) {
-            q.normalize();
-        }
    
 }
 
 // Quaternion 
-Quaternion::Quaternion(Eigen::Vector4d& v):point(false), q(v){
+Quaternion::Quaternion(const Eigen::Vector4d& v, bool p ):point(p), q(v){
 
 
-    magnitude = q.norm();
+    
     // converting to unit quat, if not point
     if (!point) {
             q.normalize();
         }
+    
+    // can be avoided 
+    magnitude = q.norm();
    
 }
 
 // Euler angles or Rvec
-Quaternion::Quaternion(Eigen::Vector3d& v, bool deg = false, bool rvec = false, bool point = false):point(point){
+Quaternion::Quaternion(const Eigen::Vector3d& v, bool deg = false, bool rvec = false):point(false){
 
     if (rvec){
 
@@ -66,11 +76,15 @@ Quaternion::Quaternion(Eigen::Vector3d& v, bool deg = false, bool rvec = false, 
         q(2)= cr * cp * sy - sr * sp * cy;
         
     }
+    q.normalize();
+
+    // can be avoided 
+    magnitude = q.norm();
 
 }
 
 // Rotation matrix
-Quaternion::Quaternion(Eigen::Matrix3d& m):point(false){
+Quaternion::Quaternion(const Eigen::Matrix3d& m):point(false){
 
     double tr = m.trace(); 
 
@@ -113,6 +127,11 @@ Quaternion::Quaternion(Eigen::Matrix3d& m):point(false){
 
     }
 
+    q.normalize();
+
+    // can be avoided 
+    magnitude = q.norm(); 
+
 }
 
 // Getters ---------------
@@ -122,8 +141,12 @@ void Quaternion::getRotationMatrix(Eigen::Matrix3d& m){
 
 }
 
-void Quaternion::getQuaternion(Eigen::Vector4d& v){
-    v=q;
+Eigen::Vector4d Quaternion::getQuaternion() const{
+    return q;
+}
+
+bool Quaternion::getPoint() const{
+    return point;
 }
 
 void Quaternion::getEulerAngles(Eigen::Vector3d& v){
