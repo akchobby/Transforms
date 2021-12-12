@@ -1,0 +1,28 @@
+
+# System Monitor
+
+## system mem check 
+df -lh 
+
+## check size of directories in path 
+du -cha --max-depth=1 <path>
+
+## general command to continuously monitor
+watch -n <secs> <command>
+
+## hardware check 
+dmesg | grep <harware device driver type>
+
+
+-------------------------------------------
+# Search
+
+## Get lines after or before pattren
+grep -A/-B <number> <pattern>
+
+## Returns lines containing pattern in the search path
+grep -rnw <path to search> -e <pattern>
+
+
+--------------------------------------------
+
