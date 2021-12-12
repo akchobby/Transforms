@@ -15,7 +15,4 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 add_subdirectory(src)
 add_subdirectory(tests)
 
-# Defining variables
-# set(SRC_LIST  src/quaternion.cpp)
-
 

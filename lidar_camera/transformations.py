@@ -326,6 +326,8 @@ if __name__=="__main__" :
     #rot_mat = Rotations([180,0,45], extrinsic=True).rotation_matrix
     #q1 = Quaternion( [-1,0.0,0.0,0.0])
     q2 = Quaternion([0.0, 45,45], deg=True) 
+    print(q2.to_rotation_matrix())
+    print(q2)
     #q3 = Quaternion([0.0, 30.0, 0.0], deg=True)
     #print(q2)
     #print(q1.inv().rotate(q1.rotate([0,0,0.5]).to_list()[:3]).to_list())#.to_euler(deg=True))

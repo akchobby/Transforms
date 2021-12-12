@@ -1,3 +1,10 @@
+/** @file quaternion.hpp
+ * @brief A class under the transforms namespace that allows you to generate a quaternion and 
+ * perform all various operations on it.
+ *
+ * @author Anil Kumar Chavali
+ * 
+ */
 #pragma once
 
 #include <iostream>
@@ -24,20 +31,18 @@ namespace transforms {
 
             // quaternion vector 
             Quaternion(const Eigen::Vector4d& v,  bool point = false);
-            Quaternion(const Eigen::Vector3d& v); // for a point
 
-            // euler angles or rvec
-            Quaternion(const Eigen::Vector3d& v, bool deg, bool rvec);
+            // point, euler angles(ZYX order or ypr) or rvec
+            Quaternion(const Eigen::Vector3d& v, bool point = false, bool deg = false, bool rvec = false);
 
 
             // create quaternion --- a matrix case
+
+            // rotation matrix
             Quaternion(const Eigen::Matrix3d& m);
 
 
-            
-
-
-            // Operaters ---------
+            // Operators ---------
 
             friend ostream& operator<<(ostream& os, const Quaternion& q);
 
@@ -46,15 +51,17 @@ namespace transforms {
             Quaternion operator*(const Quaternion& rhs_q);
             Quaternion operator/(const double& scalar);
 
+            Quaternion conjugate();
+            Quaternion inv();
+
 
             // Getters -----------
-            void getRotationMatrix(Eigen::Matrix3d& m);
-
-            // conversions
             Eigen::Vector4d getQuaternion() const;
             bool getPoint() const;
 
-            void getEulerAngles(Eigen::Vector3d& v);
+            // conversions
+            void getRotationMatrix(Eigen::Matrix3d& m);
+            Eigen::Vector3d getEulerAngles();
 
 
         private:

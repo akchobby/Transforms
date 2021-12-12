@@ -22,24 +22,12 @@ Quaternion::Quaternion(const Quaternion& src):Quaternion(src.q, src.point){
 
 
 }
-// Quaternion 
-Quaternion::Quaternion(const Eigen::Vector3d& v):point(true){
 
-
-    q(0) = v(0);
-    q(1) = v(1);
-    q(2) = v(2);
-    q(3) = 0;
-
-    magnitude = q.norm();
-   
-}
 
 // Quaternion 
-Quaternion::Quaternion(const Eigen::Vector4d& v, bool p ):point(p), q(v){
+Quaternion::Quaternion(const Eigen::Vector4d& v,  bool p ):q(v), point(p){
 
 
-    
     // converting to unit quat, if not point
     if (!point) {
             q.normalize();
@@ -50,8 +38,8 @@ Quaternion::Quaternion(const Eigen::Vector4d& v, bool p ):point(p), q(v){
    
 }
 
-// Euler angles or Rvec
-Quaternion::Quaternion(const Eigen::Vector3d& v, bool deg = false, bool rvec = false):point(false){
+// Point, Euler angles or Rvec
+Quaternion::Quaternion(const Eigen::Vector3d& v, bool p, bool deg, bool rvec):point(p){
 
     if (rvec){
 
@@ -61,6 +49,11 @@ Quaternion::Quaternion(const Eigen::Vector3d& v, bool deg = false, bool rvec = f
         q(2) = v(2)/angle * sin(angle/2);
         q(3) = cos(angle/2);
 
+    }else if (point){
+            q(0) = v(0);
+            q(1) = v(1);
+            q(2) = v(2);
+            q(3) = 0;
     }else{
 
         double cy = cos(v(0) * 0.5);
@@ -76,7 +69,8 @@ Quaternion::Quaternion(const Eigen::Vector3d& v, bool deg = false, bool rvec = f
         q(2)= cr * cp * sy - sr * sp * cy;
         
     }
-    q.normalize();
+
+    if(!point) {q.normalize();}
 
     // can be avoided 
     magnitude = q.norm();
@@ -144,6 +138,7 @@ Quaternion Quaternion::operator+(const Quaternion& rhs){
 
     return Quaternion(result_q, rhs.point);
 }
+
 Quaternion Quaternion::operator-(const Quaternion& rhs){
     // May not be memory efficient but done to prevent changing teh original quat values
 
@@ -169,6 +164,21 @@ Quaternion Quaternion::operator/(const double& scalar){
     return Quaternion(q, point);
 }
 
+Quaternion Quaternion::conjugate(){
+    Eigen::Vector4d result_q ;
+
+    result_q(0) = - q(0);
+    result_q(1) = - q(1);
+    result_q(2) = - q(2);
+    result_q(3) = q(3);
+    return Quaternion(result_q, point);
+}
+
+Quaternion Quaternion::inv(){
+    return this->conjugate();
+}
+
+
 // Getters ---------------
 
 void Quaternion::getRotationMatrix(Eigen::Matrix3d& m){
@@ -184,7 +194,7 @@ bool Quaternion::getPoint() const{
     return point;
 }
 
-void Quaternion::getEulerAngles(Eigen::Vector3d& v){
+Eigen::Vector3d Quaternion::getEulerAngles(){
 
     //ZYX - current case if xyz needed then : z = x, x=z
     // Roll (x-axis rotation)
@@ -207,9 +217,12 @@ void Quaternion::getEulerAngles(Eigen::Vector3d& v){
         double cosy_cosp = 1 - 2 * (q(1) * q(1) + q(2) * q(2));
         double yaw = atan2(siny_cosp, cosy_cosp);
 
+        Eigen::Vector3d v;
+
         v(0) = roll;
         v(1) = pitch;
         v(2) = yaw;
+    return v;
 }
 
 
