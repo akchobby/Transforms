@@ -32,6 +32,20 @@ int main(){
     Quaternion test_q5(test_q2);
     cout << "q5 --  " << test_q5 << endl;
 
+    // ----- operations
+    Quaternion test_q6 = test_q1 + test_q3 ;
+    cout << "q6 --  " << test_q6 << endl;
+
+    Quaternion test_q7 = test_q1 - test_q3 ;
+    cout << "q7 --  " << test_q7 << endl;
+
+    Quaternion test_q8 = test_q1 * test_q3 ;
+    cout << "q8 --  " << test_q8 << endl;
+
+    Quaternion test_q9 = test_q3 / 2.0 ;
+    cout << "q9 --  " << test_q9 << endl;
+
+
     // Test rvec 
 
     // Test euler angles

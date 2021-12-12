@@ -18,7 +18,7 @@ Quaternion::~Quaternion(){
 }
 
 
-Quaternion::Quaternion(const Quaternion& src):Quaternion(src.getQuaternion(), src.getPoint()){
+Quaternion::Quaternion(const Quaternion& src):Quaternion(src.q, src.point){
 
 
 }
@@ -132,6 +132,41 @@ Quaternion::Quaternion(const Eigen::Matrix3d& m):point(false){
     // can be avoided 
     magnitude = q.norm(); 
 
+}
+
+// Operator overloading ------
+
+Quaternion Quaternion::operator+(const Quaternion& rhs){
+
+    // May not be memory efficient but done to prevent changing teh original quat value
+    
+    Eigen::Vector4d result_q  = q + rhs.q;
+
+    return Quaternion(result_q, rhs.point);
+}
+Quaternion Quaternion::operator-(const Quaternion& rhs){
+    // May not be memory efficient but done to prevent changing teh original quat values
+
+    Eigen::Vector4d result_q = q - rhs.q;
+
+    return Quaternion(result_q, rhs.point);
+}
+
+Quaternion Quaternion::operator*(const Quaternion& rhs){
+
+    Eigen::Vector4d result_q ;
+    result_q(0) =  q(0)* rhs.q(3) + q(1) * rhs.q(2) - q(2) * rhs.q(1) + q(3) * rhs.q(0);
+    result_q(1) = -q(0)* rhs.q(2) + q(1) * rhs.q(3) + q(2) * rhs.q(0)+ q(3) * rhs.q(1);
+    result_q(2) =  q(0)* rhs.q(1) - q(1) * rhs.q(0)+ q(2) * rhs.q(3) + q(3) * rhs.q(2);
+    result_q(3) = -q(0)* rhs.q(0)- q(1) * rhs.q(1) - q(2) * rhs.q(2) + q(3) * rhs.q(3);
+
+    return Quaternion(result_q, rhs.point);
+}
+
+
+Quaternion Quaternion::operator/(const double& scalar){
+    q /= scalar;
+    return Quaternion(q, point);
 }
 
 // Getters ---------------

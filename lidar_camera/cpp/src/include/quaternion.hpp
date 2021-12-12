@@ -41,6 +41,11 @@ namespace transforms {
 
             friend ostream& operator<<(ostream& os, const Quaternion& q);
 
+            Quaternion operator+(const Quaternion& rhs_q);
+            Quaternion operator-(const Quaternion& rhs_q);
+            Quaternion operator*(const Quaternion& rhs_q);
+            Quaternion operator/(const double& scalar);
+
 
             // Getters -----------
             void getRotationMatrix(Eigen::Matrix3d& m);

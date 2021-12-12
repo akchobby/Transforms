@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(TRANSFORMS VERSION 1.0
+project(transforms VERSION 1.0
 	      DESCRIPTION "Library for transformation by Anil Kumar Chavali"
 	      LANGUAGES CXX )
 

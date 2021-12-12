@@ -1,8 +1,8 @@
 # Author: Anil Kumar Chavali
 
 # inlclude src files
-include_directories(${TRANSFORMS_SOURCE_DIR}/src
-                    ${TRANSFORMS_SOURCE_DIR}/src/include)
+include_directories(${transforms_SOURCE_DIR}/src
+                    ${transforms_SOURCE_DIR}/src/include)
 
 # Tests
 add_executable(${PROJECT_NAME}_quaternion_test quaternion_main.cpp)
