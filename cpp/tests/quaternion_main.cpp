@@ -63,12 +63,18 @@ int main(){
    
    // Test euler angles
     Eigen::Vector3d v4;
-    v4 << M_PI/2, 0, M_PI/2;
+    v4 << 0.0, M_PI/2, M_PI/2;
 
     Quaternion test_q11(v4);
     cout << "q11 --  " << test_q11 << endl;
 
     cout << "q13 --  \n" << test_q10.getEulerAngles() << endl; //euler x45,y45,z0
+
+    Eigen::Vector3d v5;
+    v5 << 0.0, 45.0,  45.0;
+
+    Quaternion test_q14(v5, false, true);
+    cout << "q14 --  \n" << test_q14.getEulerAngles() << endl; //euler x45,y45,z0
 
 
     // Test rvec 

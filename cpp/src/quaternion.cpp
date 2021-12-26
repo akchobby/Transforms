@@ -2,6 +2,7 @@
 #include <Eigen/Core>
 
 #include "quaternion.hpp"
+#include "utils.hpp"
 
 
 using namespace std;
@@ -56,12 +57,25 @@ Quaternion::Quaternion(const Eigen::Vector3d& v, bool p, bool deg, bool rvec):po
             q(3) = 0;
     }else{
 
-        double cy = cos(v(0) * 0.5);
-        double sy = sin(v(0) * 0.5);
-        double cp = cos(v(1) * 0.5);
-        double sp = sin(v(1) * 0.5);
-        double cr = cos(v(2) * 0.5);
-        double sr = sin(v(2) * 0.5);
+        double cy, sy, cp, sp, cr, sr;
+
+        if(deg) { 
+
+            cy = cos(DEG_TO_RAD * v(0) * 0.5);
+            sy = sin(DEG_TO_RAD * v(0) * 0.5);
+            cp = cos(DEG_TO_RAD * v(1) * 0.5);
+            sp = sin(DEG_TO_RAD * v(1) * 0.5);
+            cr = cos(DEG_TO_RAD * v(2) * 0.5);
+            sr = sin(DEG_TO_RAD * v(2) * 0.5);
+
+        }else {
+            cy = cos(v(0) * 0.5);
+            sy = sin(v(0) * 0.5);
+            cp = cos(v(1) * 0.5);
+            sp = sin(v(1) * 0.5);
+            cr = cos(v(2) * 0.5);
+            sr = sin(v(2) * 0.5);
+        }
 
         q(3)= cr * cp * cy + sr * sp * sy;
         q(0)= sr * cp * cy - cr * sp * sy;
