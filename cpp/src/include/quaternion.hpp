@@ -61,7 +61,7 @@ namespace transforms {
 
             // conversions
             void getRotationMatrix(Eigen::Matrix3d& m);
-            Eigen::Vector3d getEulerAngles();
+            Eigen::Vector3d getEulerAngles(bool deg=false);
 
 
         private:

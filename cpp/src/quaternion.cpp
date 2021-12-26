@@ -208,7 +208,7 @@ bool Quaternion::getPoint() const{
     return point;
 }
 
-Eigen::Vector3d Quaternion::getEulerAngles(){
+Eigen::Vector3d Quaternion::getEulerAngles(bool deg){
 
     //ZYX - current case if xyz needed then : z = x, x=z
     // Roll (x-axis rotation)
@@ -233,9 +233,16 @@ Eigen::Vector3d Quaternion::getEulerAngles(){
 
         Eigen::Vector3d v;
 
-        v(0) = roll;
-        v(1) = pitch;
-        v(2) = yaw;
+        if (deg){
+            v(0) =  RAD_TO_DEG * roll;
+            v(1) =  RAD_TO_DEG * pitch;
+            v(2) =  RAD_TO_DEG * yaw;
+        }else{
+            v(0) = roll;
+            v(1) = pitch;
+            v(2) = yaw;
+        }
+
     return v;
 }
 
