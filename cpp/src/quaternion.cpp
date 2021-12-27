@@ -217,14 +217,8 @@ Eigen::Vector3d Quaternion::getEulerAngles(bool deg){
         double roll = atan2(sinr_cosp, cosr_cosp);
 
     // Pitch (y-axis rotation)
-        double pitch;
         double sinp = 2 * (q(3)* q(1) - q(2) * q(0));
-        if (fabs(sinp) >= 1){
-            pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
-
-        }else{
-            pitch = asin(sinp);
-        }
+        double pitch = (fabs(sinp) >= 1) ? copysign(M_PI / 2, sinp) : asin(sinp); // use 90 degrees if out of range
 
     // Yaw (z-axis rotation)
         double siny_cosp = 2 * (q(3)* q(2) + q(0) * q(1));
@@ -233,15 +227,10 @@ Eigen::Vector3d Quaternion::getEulerAngles(bool deg){
 
         Eigen::Vector3d v;
 
-        if (deg){
-            v(0) =  RAD_TO_DEG * roll;
-            v(1) =  RAD_TO_DEG * pitch;
-            v(2) =  RAD_TO_DEG * yaw;
-        }else{
-            v(0) = roll;
-            v(1) = pitch;
-            v(2) = yaw;
-        }
+        v(0) =  deg ? RAD_TO_DEG * roll : roll;
+        v(1) =  deg ? RAD_TO_DEG * pitch  : pitch;
+        v(2) =  deg ? RAD_TO_DEG * yaw : yaw;
+
 
     return v;
 }
