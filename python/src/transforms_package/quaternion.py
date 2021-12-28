@@ -251,5 +251,6 @@ if __name__=="__main__":
 
 
     fig, ax = plt.subplots(1)
-    plot_quaternions(ax, [q1,q2,q3,q4], [t1,t2,t3,t4], ["q1","q2","q3","q4"])
+    #plot_quaternions(ax, [q1,q2,q3,q4], [t1,t2,t3,t4], ["q1","q2","q3","q4"])
+    plot_quaternions(ax, [q1,q3,q4], [t1,t3,t4], ["q1","q2","q3"])
     plt.show()
