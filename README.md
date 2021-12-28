@@ -12,8 +12,8 @@ Languages it is available in are:
 
 A snippet of the capability of the library to display quaternions
 
-**Front View**
-![front](assets/images/front_view.png)
+**Views**
+Front view             |  Isometric View
+:-------------------------:|:-------------------------:
+![](assets/images/front_view.png)  |  ![](assets/images/isometric_view.png)
 
-**Isometric View**
-![isometric](assets/images/isometric_view.png)
