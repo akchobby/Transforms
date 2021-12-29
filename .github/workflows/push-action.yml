@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@main
 
       - name: Install Eigen lib
-        run: ./.github/scripts/env_setup.sh
+        run: sudo apt-get install -y libeigen3-dev
         shell: bash
 
       - name: CMake setup
