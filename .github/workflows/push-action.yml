@@ -28,3 +28,7 @@ jobs:
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: ctest -C ${{env.BUILD_TYPE}}
 
+      - name: Print test data
+        run: cat ${{github.workspace}}/build/Testing/Temporary/LastTest.log 
+        shell: bash
+
