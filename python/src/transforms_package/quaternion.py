@@ -8,13 +8,21 @@ from mpl_toolkits.mplot3d import Axes3D
 class Quaternion:
 
     def __init__(self, data, deg=False, rvec=False, point=False):
-        """
-        Function takes a list which has 
+        """Constructor takes a list which has 
         - quaternion values in the order x,y,z,w
         - rotation matrix 3x3 [https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/]
         - euler angles in order of ZYX rotation
 
-        """
+        :param data: [description]
+        :type data: [type]
+        :param deg: [description], defaults to False
+        :type deg: bool, optional
+        :param rvec: [description], defaults to False
+        :type rvec: bool, optional
+        :param point: [description], defaults to False
+        :type point: bool, optional
+        """        
+
         data = np.array(data)
         if len(data.shape) < 2:
             if rvec:
@@ -99,28 +107,66 @@ class Quaternion:
         return Quaternion([x,y,z,w], point=q.point)
 
     def divide(self, scalar):
+        """[summary]
+
+        :param scalar: [description]
+        :type scalar: [type]
+        :return: [description]
+        :rtype: [type]
+        """
+
         assert not isinstance(scalar, Quaternion), "can only divide scalars"
         return Quaternion([self.x/scalar, self.y/scalar, self.z/scalar, self.w/scalar])
     
     def conjugate(self):
+        """[summary]
+
+        :return: [description]
+        :rtype: [type]
+        """        
         return Quaternion([-self.x, -self.y, -self.z, self.w])
     
     def inv(self):
+        """[summary]
+
+        :return: [description]
+        :rtype: [type]
+        """        
         return self.conjugate().normalize()
     
     def normalize(self):
+        """[summary]
+        """             
         return(self.divide(self.magnitude))
     
     def deg2rad(self, val):
+        """[summary]
+
+        :param val: [description]
+        :type val: [type]
+        :return: [description]
+        :rtype: [type]
+        """        
         return np.pi/180.0 * val
     
     def rad2deg(self, val):
+        """[summary]
+
+        :param val: [description]
+        :type val: [type]
+        :return: [description]
+        :rtype: [type]
+        """        
         return val *180.0/np.pi
     
     def to_euler(self, deg=False):
-        """
-        Returns ZXY transform but as a list in  x,y,z order. In rad unless deg param is changed 
-        """
+        """Returns ZXY transform but as a list in  x,y,z order. In rad unless deg param is changed 
+
+        :param deg: [description], defaults to False
+        :type deg: bool, optional
+        :return: [description]
+        :rtype: [type]
+        """        
 
         #ZYX - surrent case if xyz needed then : z = x, x=z
         # roll (x-axis rotation)
@@ -144,6 +190,11 @@ class Quaternion:
 
     
     def to_rotation_matrix(self):
+        """[summary]
+
+        :return: [description]
+        :rtype: [type]
+        """        
         sqw = self.w**2
         sqx = self.x**2
         sqy = self.y**2
@@ -174,9 +225,21 @@ class Quaternion:
                         [m20,m21,m22]])
     
     def to_list(self):
+        """[summary]
+
+        :return: [description]
+        :rtype: [type]
+        """        
         return [self.x, self.y, self.z, self.w]
     
     def rotate(self,point):
+        """[summary]
+
+        :param point: [description]
+        :type point: [type]
+        :return: [description]
+        :rtype: [type]
+        """        
         q = Quaternion(point+[0], point=True)
         return (self * q) * self.conjugate()
     
@@ -192,6 +255,17 @@ class Quaternion:
 
 
 def plot_quaternions(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]):
+    """[summary]
+
+    :param ax: [description]
+    :type ax: [type]
+    :param rotation: [description], defaults to None
+    :type rotation: [type], optional
+    :param translation: [description], defaults to [0.0,0.50,0]
+    :type translation: list, optional
+    :param names: [description], defaults to ["test"]
+    :type names: list, optional
+    """    
 
     # origin- the axes you shall transform
     p1 =[1,0,0]
@@ -223,6 +297,8 @@ def plot_quaternions(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]
     elif isinstance(rotation, list):
         assert len(np.array(translation).shape) > 1, "Translation list not in right format"
         assert len(rotation) == len(translation), "Translation not provided for eah rotation"
+        if  len(rotation) != len(names):
+            names=["".join(["quat_",str(i)]) for i in range(len(rotation))]
 
         for i, q in enumerate(rotation):
             p4 = translation[i]
@@ -252,5 +328,5 @@ if __name__=="__main__":
 
     fig, ax = plt.subplots(1)
     #plot_quaternions(ax, [q1,q2,q3,q4], [t1,t2,t3,t4], ["q1","q2","q3","q4"])
-    plot_quaternions(ax, [q1,q3,q4], [t1,t3,t4], ["q1","q2","q3"])
+    plot_quaternions(ax, [q1,q3,q4], [t1,t3,t4])
     plt.show()

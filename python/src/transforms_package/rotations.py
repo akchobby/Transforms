@@ -9,12 +9,21 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class Rotations:
     def __init__(self, input, deg=False, order="xyz", extrinsic=True):
-        """
+        """Consructor
         source for equations
 
         https://www.cs.utexas.edu/~theshark/courses/cs354/lectures/cs354-14.pdf
- 
-        """
+
+        :param input: [description]
+        :type input: [type]
+        :param deg: [description], defaults to False
+        :type deg: bool, optional
+        :param order: [description], defaults to "xyz"
+        :type order: str, optional
+        :param extrinsic: [description], defaults to True
+        :type extrinsic: bool, optional
+        """        
+
         assert isinstance(input,np.ndarray) , "Input not numpy array, input numpy array"
         if len(input.shape) == 2:
             self.rotation_matrix = input
@@ -32,26 +41,63 @@ class Rotations:
                 print("Wrong order, provide in using 'xyz'")
 
     def Rx(self,phi):
+        """[summary]
+
+        :param phi: [description]
+        :type phi: [type]
+        :return: [description]
+        :rtype: [type]
+        """        
         return np.array([[1, 0, 0],
                      [0, np.cos(phi), -np.sin(phi)],
                      [0, np.sin(phi), np.cos(phi)]])
 
     def Ry(self,theta):
+        """[summary]
+
+        :param theta: [description]
+        :type theta: [type]
+        :return: [description]
+        :rtype: [type]
+        """        
         return np.array([[np.cos(theta), 0, np.sin(theta)],
                          [0, 1, 0],
                          [-np.sin(theta), 0, np.cos(theta)]])
 
     def Rz(self, psi):
+        """[summary]
+
+        :param psi: [description]
+        :type psi: [type]
+        :return: [description]
+        :rtype: [type]
+        """        
         return np.array([[np.cos(psi), -np.sin(psi), 0],
                  [np.sin(psi), np.cos(psi), 0],
                  [0, 0, 1]])
     
     def rotate(self,point):
+        """[summary]
+
+        :param point: [description]
+        :type point: [type]
+        :return: [description]
+        :rtype: [type]
+        """        
         assert isinstance(point, np.ndarray) , "Point not numpy array, input numpy array"
         return np.matmul(self.rotation_matrix, point.T) if (point.shape[1] == 3)  else np.matmul(self.rotation_matrix,point)
 
 
-def plot_rotation_mats(ax, rotation_mat=None, translation=[0,0.05,0]):
+def plot_rotation_mats(ax, rotation_mat=None, translation=[0,0.05,0], names=["test"]):
+    """[summary]
+
+    :param ax: [description]
+    :type ax: [type]
+    :param rotation_mat: [description], defaults to None
+    :type rotation_mat: [type], optional
+    :param translation: [description], defaults to [0,0.05,0]
+    :type translation: list, optional
+    """    
     # origin- the axes you shall transform
     p1 =[1,0,0]
     p2 =[0,1,0]
@@ -79,7 +125,9 @@ def plot_rotation_mats(ax, rotation_mat=None, translation=[0,0.05,0]):
 
     elif isinstance(rotation_mat, list):
 
-        assert len(rotation_mat) == len(translation), 'Missing translation vector for rotation'
+        assert len(rotation_mat) == len(translation), 'Mismatch of translation vector for rotation'
+        if  len(rotation_mat) != len(names):
+            names=["".join(["rot_",str(i)]) for i in range(len(rotation_mat))]
 
         for i,rotation in enumerate(rotation_mat):
             p4 = translation[i]
@@ -91,6 +139,7 @@ def plot_rotation_mats(ax, rotation_mat=None, translation=[0,0.05,0]):
             ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
             ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
             ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+            ax.text(p4[0],p4[1],p4[2],names[i], fontsize=9,bbox=dict(facecolor="white", alpha=0.5, pad=0.1))
 
     else:
         p4 = translation
@@ -102,6 +151,8 @@ def plot_rotation_mats(ax, rotation_mat=None, translation=[0,0.05,0]):
         ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], color="r")
         ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], color="g")
         ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], color="b")
+    ax.legend(["x","y","z"])
+
 
 if __name__== "__main__":
 
