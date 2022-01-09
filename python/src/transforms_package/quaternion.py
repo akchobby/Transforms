@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class Quaternion:
 
-    def __init__(self, data, deg=False, rvec=False, point=False):
+    def __init__(self, data, deg=False, rvec=False, point=False, order='xyz', extrinsic=True):
         """Constructor takes a list which has 
         - quaternion values in the order x,y,z,w
         - rotation matrix 3x3 [https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/]
@@ -42,45 +42,25 @@ class Quaternion:
             elif len(data) == 3:
                 if deg:
                     data = list(map(self.deg2rad, data))
-                cy = math.cos(data[0] * 0.5)
-                sy = math.sin(data[0] * 0.5)
-                cp = math.cos(data[1] * 0.5)
-                sp = math.sin(data[1] * 0.5)
-                cr = math.cos(data[2] * 0.5)
-                sr = math.sin(data[2] * 0.5)
-                self.w = cr * cp * cy + sr * sp * sy
-                self.x = sr * cp * cy - cr * sp * sy
-                self.y = cr * sp * cy + sr * cp * sy
-                self.z = cr * cp * sy - sr * sp * cy
+
+                if (order == "xyz" and extrinsic) or (order == "zyx" and not extrinsic):
+                    cy = math.cos(data[0] * 0.5)
+                    sy = math.sin(data[0] * 0.5)
+                    cp = math.cos(data[1] * 0.5)
+                    sp = math.sin(data[1] * 0.5)
+                    cr = math.cos(data[2] * 0.5)
+                    sr = math.sin(data[2] * 0.5)
+                    self.w = cr * cp * cy + sr * sp * sy
+                    self.x = sr * cp * cy - cr * sp * sy
+                    self.y = cr * sp * cy + sr * cp * sy
+                    self.z = cr * cp * sy - sr * sp * cy
+                elif (order == "zyx" and extrinsic) or (order == "xyz" and not extrinsic):
+                    pass
+                else:
+                    print("[ERROR]  Euler order not supported")
 
         elif data.shape[0] == 3 and data.shape[1] == 3:
-            tr = np.trace(data)
-            if (tr > 0):
-                S = math.sqrt(tr+1.0) * 2
-                self.w = 0.25 * S
-                self.x = (data[2][1] - data[1][2]) / S
-                self.y = (data[0][2] - data[2][0]) / S
-                self.z = (data[1][0] - data[0][1]) / S 
-
-            elif ((data[0][0] > data[1][1]) and (data[0][0] > data[2][2])):
-                S = math.sqrt(1.0 + data[0][0] - data[1][1] - data[2][2]) * 2
-                self.w = (data[2][1] - data[1][2]) / S
-                self.x = 0.25 * S
-                self.y = (data[0][1] + data[1][0]) / S 
-                self.z = (data[0][2] + data[2][0]) / S
-
-            elif (data[1][1] > data[2][2]):
-                S = math.sqrt(1.0 + data[1][1] - data[0][0] - data[2][2]) * 2
-                self.w = (data[0][2] - data[2][0]) / S
-                self.x = (data[0][1] + data[1][0]) / S 
-                self.y = 0.25 * S
-                self.z = (data[1][2] + data[2][1]) / S
-            else:
-                S = math.sqrt(1.0 + data[2][2] - data[0][0] - data[1][1]) * 2
-                self.w = (data[1][0] - data[0][1]) / S
-                self.x = (data[0][2] + data[2][0]) / S
-                self.y = (data[1][2] + data[2][1]) / S
-                self.z = 0.25 * S
+            self._quat_from_rotation(data)
         
         else: 
             print("[ERROR] invalid arguments")
@@ -105,6 +85,35 @@ class Quaternion:
         z =  self.x * q.y - self.y * q.x + self.z * q.w + self.w * q.z
         w = -self.x * q.x - self.y * q.y - self.z * q.z + self.w * q.w
         return Quaternion([x,y,z,w], point=q.point)
+    
+    def _quat_from_rotation(self,data):
+        tr = np.trace(data)
+        if (tr > 0):
+            S = math.sqrt(tr+1.0) * 2
+            self.w = 0.25 * S
+            self.x = (data[2][1] - data[1][2]) / S
+            self.y = (data[0][2] - data[2][0]) / S
+            self.z = (data[1][0] - data[0][1]) / S 
+
+        elif ((data[0][0] > data[1][1]) and (data[0][0] > data[2][2])):
+            S = math.sqrt(1.0 + data[0][0] - data[1][1] - data[2][2]) * 2
+            self.w = (data[2][1] - data[1][2]) / S
+            self.x = 0.25 * S
+            self.y = (data[0][1] + data[1][0]) / S 
+            self.z = (data[0][2] + data[2][0]) / S
+
+        elif (data[1][1] > data[2][2]):
+            S = math.sqrt(1.0 + data[1][1] - data[0][0] - data[2][2]) * 2
+            self.w = (data[0][2] - data[2][0]) / S
+            self.x = (data[0][1] + data[1][0]) / S 
+            self.y = 0.25 * S
+            self.z = (data[1][2] + data[2][1]) / S
+        else:
+            S = math.sqrt(1.0 + data[2][2] - data[0][0] - data[1][1]) * 2
+            self.w = (data[1][0] - data[0][1]) / S
+            self.x = (data[0][2] + data[2][0]) / S
+            self.y = (data[1][2] + data[2][1]) / S
+            self.z = 0.25 * S
 
     def divide(self, scalar):
         """[summary]
