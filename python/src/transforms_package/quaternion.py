@@ -13,7 +13,7 @@ class Quaternion(Rotations):
         """Constructor takes a list which has 
         - quaternion values in the order x,y,z,w
         - rotation matrix 3x3 [https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/]
-        - euler angles in order of ZYX rotation
+        - euler angles, by default considers angles in xyz order and an extrinsic rotation.
 
         :param data: [description]
         :type data: [type]
