@@ -25,6 +25,7 @@ class Quaternion(Rotations):
         :type point: bool, optional
         """        
 
+        super().__init__()
         data = np.array(data)
         if len(data.shape) < 2:
             if rvec:
