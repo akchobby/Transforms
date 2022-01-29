@@ -1,11 +1,13 @@
+from typing import Tuple
 import numpy as np
 import math 
+from rotations import Rotations
 
 # plot libraries
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-class Quaternion:
+class Quaternion(Rotations):
 
     def __init__(self, data, deg=False, rvec=False, point=False, order='xyz', extrinsic=True):
         """Constructor takes a list which has 
@@ -42,20 +44,15 @@ class Quaternion:
             elif len(data) == 3:
                 if deg:
                     data = list(map(self.deg2rad, data))
-
-                if (order == "xyz" and extrinsic) or (order == "zyx" and not extrinsic):
-                    cy = math.cos(data[0] * 0.5)
-                    sy = math.sin(data[0] * 0.5)
-                    cp = math.cos(data[1] * 0.5)
-                    sp = math.sin(data[1] * 0.5)
-                    cr = math.cos(data[2] * 0.5)
-                    sr = math.sin(data[2] * 0.5)
-                    self.w = cr * cp * cy + sr * sp * sy
-                    self.x = sr * cp * cy - cr * sp * sy
-                    self.y = cr * sp * cy + sr * cp * sy
-                    self.z = cr * cp * sy - sr * sp * cy
-                elif (order == "zyx" and extrinsic) or (order == "xyz" and not extrinsic):
-                    pass
+                
+                if order == "xyz":
+                    data = np.matmul(np.matmul(self.Rz(data[2]),self.Ry(data[1])),self.Rx(data[0])) if extrinsic else np.matmul(np.matmul(self.Rx(data[0]), self.Ry(data[1])),self.Rz(data[2]))
+                    self._quat_from_rotation(data)
+                
+                elif order == "zyx":
+                    data = np.matmul(np.matmul(self.Rx(data[2]),self.Ry(data[1])),self.Rz(data[0])) if extrinsic else np.matmul(np.matmul(self.Rz(data[0]),self.Ry(data[1])),self.Rx(data[2]))
+                    self._quat_from_rotation(data)
+                
                 else:
                     print("[ERROR]  Euler order not supported")
 
@@ -337,5 +334,5 @@ if __name__=="__main__":
 
     fig, ax = plt.subplots(1)
     #plot_quaternions(ax, [q1,q2,q3,q4], [t1,t2,t3,t4], ["q1","q2","q3","q4"])
-    plot_quaternions(ax, [q1,q3,q4], [t1,t3,t4])
+    plot_quaternions(ax, [q1,q2,q3,q4], [t1,t2,t3,t4])
     plt.show()
