@@ -7,6 +7,8 @@ from rotations import Rotations
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+DEBUG=False
+
 class Quaternion(Rotations):
 
     def __init__(self, data, deg=False, rvec=False, point=False, order='xyz', extrinsic=True):
@@ -34,6 +36,8 @@ class Quaternion(Rotations):
                 self.y = data[1]/angle * math.sin(angle/2)
                 self.z = data[2]/angle * math.sin(angle/2)
                 self.w = math.cos(angle/2)
+                if DEBUG:
+                    print("[INFO] Input considered an axis-angle")
 
 
             elif len(data) == 4:
@@ -41,6 +45,8 @@ class Quaternion(Rotations):
                 self.y = data[1]
                 self.z = data[2]
                 self.w = data[3]
+                if DEBUG:
+                    print("[INFO] Input considered Quaternion")
 
             elif len(data) == 3:
                 if deg:
@@ -57,8 +63,13 @@ class Quaternion(Rotations):
                 else:
                     print("[ERROR]  Euler order not supported")
 
+                if DEBUG:
+                    print("[INFO] Input considered Euler angle")
+
         elif data.shape[0] == 3 and data.shape[1] == 3:
             self._quat_from_rotation(data)
+            if DEBUG:
+                    print("[INFO] Input considered Rotation Matrix")
         
         else: 
             print("[ERROR] invalid arguments")
@@ -166,7 +177,7 @@ class Quaternion(Rotations):
         """        
         return val *180.0/np.pi
     
-    def to_euler(self, deg=False):
+    def to_euler(self, deg=False, order='zyx'):
         """Returns ZXY transform but as a list in  x,y,z order. In rad unless deg param is changed 
 
         :param deg: [description], defaults to False
@@ -174,24 +185,13 @@ class Quaternion(Rotations):
         :return: [description]
         :rtype: [type]
         """        
+        #ZYX - order only
 
-        #ZYX - surrent case if xyz needed then : z = x, x=z
-        # roll (x-axis rotation)
-        sinr_cosp = 2 * (self.w * self.x + self.y * self.z)
-        cosr_cosp = 1 - 2 * (self.x * self.x + self.y * self.y)
-        roll = math.atan2(sinr_cosp, cosr_cosp)
+        r = self.to_rotation_matrix()
 
-        # pitch (y-axis rotation)
-        sinp = 2 * (self.w * self.y - self.z * self.x)
-        if (math.fabs(sinp) >= 1):
-            pitch = math.copysign(np.pi / 2, sinp) # use 90 degrees if out of range
-        else:
-            pitch = math.asin(sinp)
-
-        # yaw (z-axis rotation)
-        siny_cosp = 2 * (self.w * self.z + self.x * self.y)
-        cosy_cosp = 1 - 2 * (self.y * self.y + self.z * self.z)
-        yaw = math.atan2(siny_cosp, cosy_cosp)
+        pitch = math.asin(- max(min(r[2][0],1), -1))
+        yaw = math.atan2(r[1][0],r[0][0]) if math.fabs(r[2][0]) < 1 else math.atan2(-r[0][1],r[1][1])
+        roll =  math.atan2(r[2][1],r[2][2]) if math.fabs(r[2][0]) < 1 else 0.0
 
         return [roll, pitch, yaw] if not deg else list(map(self.rad2deg,[roll, pitch, yaw]))
 
@@ -331,7 +331,9 @@ if __name__=="__main__":
     t2 = [ -1.6532861245985937, 0.0, 1.6729752215622349]
     t3 = [ -0.11797776996071918, 1.0, 2.5067800929719004]
     t4 = [-0.13349286393377516, -1.0149782312015498, 2.5193396640847534]
-
+    
+    q5 = Quaternion([0,-90,0], deg=True)
+    print(q5,q5.to_euler())
 
     fig, ax = plt.subplots(1)
     #plot_quaternions(ax, [q1,q2,q3,q4], [t1,t2,t3,t4], ["q1","q2","q3","q4"])
