@@ -261,7 +261,7 @@ class Quaternion(Rotations):
 
 
 
-def plot_quaternions(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]):
+def plot_quaternions(ax, rotation=None, translation=[0.0,0.50,0], names=["q1"]):
     """[summary]
 
     :param ax: [description]
@@ -280,7 +280,6 @@ def plot_quaternions(ax, rotation=None, translation=[0.0,0.50,0], names=["test"]
     p3 =[0,0,1]
     p4 =[0,0,0]
 
-    ax = plt.axes(projection='3d', azim=170, elev=20)
     ax.plot([p4[0],p1[0]],[p4[1],p1[1]],[p4[2],p1[2]], alpha=0.25, color="r")
     ax.plot([p4[0],p2[0]],[p4[1],p2[1]],[p4[2],p2[2]], alpha=0.25, color="g")
     ax.plot([p4[0],p3[0]],[p4[1],p3[1]],[p4[2],p3[2]], alpha=0.25, color="b")
