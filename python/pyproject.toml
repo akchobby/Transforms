@@ -3,6 +3,7 @@ requires =[
     "setuptools>=42",
     "wheel",
     "numpy",
-    "matplotlib"
+    "matplotlib",
+    "pyQt5"
 ]
 build-backend="setuptools.build_meta"

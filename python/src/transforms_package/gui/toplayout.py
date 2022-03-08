@@ -1,25 +1,29 @@
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
-import numpy as np
 from quaternion import *
 
-class Widget(QtWidgets.QDialog):
-    def __init__(self, data):
+
+class TopLayout(QtWidgets.QGroupBox):
+
+    def __init__(self, textBox):
+
         super().__init__()
-        fig = Figure()
-        self.fig = fig
-        self.canvas = FigureCanvas(self.fig)
-        self.axes = self.fig.add_subplot(111, projection='3d', azim=170, elev=20)
 
-        mainLayout = QtWidgets.QGridLayout()
+        self.txt = textBox
 
-        # top layout        
-        self.topLayout = QtWidgets.QGroupBox()
-        self.createTopLayout()
+        layout =  QtWidgets.QVBoxLayout()
+        labels = self._createLabels()
+        layout.addWidget(labels[0],0)
+        layout.addLayout(self._createRotationLayout(),1)
+        layout.addWidget(labels[1],2)
+        layout.addLayout(self._createQuaternionLayout(),3)
+        layout.addWidget(labels[2],4)
+        layout.addLayout(self._createEulerLayout(),5)
+        self.setLayout(layout)
+
         for box in self.quat_spinboxes:
             box.valueChanged.connect(self.quat_update)
 
@@ -32,37 +36,35 @@ class Widget(QtWidgets.QDialog):
 
         for box in self.euler_spinboxes:
             box.valueChanged.connect(self.euler_update)
+        
+        # Mid layout declaring here for ease of access
+        fig = Figure()
+        self.fig = fig
+        self.canvas = FigureCanvas(self.fig)
+        self.axes = self.fig.add_subplot(111, projection='3d', azim=170, elev=20)
+        
+    
 
-        # bottom layout
-        self.bottomLayout = QtWidgets.QGroupBox()
-        self.createBottomLayout()
-
-
-
-        mainLayout.addWidget(self.topLayout,0, 0)
-        mainLayout.addWidget(self.canvas,1,0)
-        mainLayout.addWidget(self.bottomLayout, 2,0)
-
-        self.setLayout(mainLayout)
-        self.setWindowTitle('Rotation Viewer')
-
-    def createTopLayout(self):
-        layout =  QtWidgets.QVBoxLayout()
+    def _createRotationLayout(self):
         # Rotation
         rotation_layout = QtWidgets.QGridLayout()
-        self.rotation_spinboxes = [[ QtWidgets.QDoubleSpinBox(self.topLayout) for i in range(0,3)] for i in range(0,3)]
+        self.rotation_spinboxes = [[ QtWidgets.QDoubleSpinBox(self) for i in range(0,3)] for i in range(0,3)]
 
         for i, row in enumerate(self.rotation_spinboxes):   
             for j, box in enumerate(row):  
                 box.setMinimum(-1.175494e+38) 
                 box.setMaximum(1.175494e+38) 
                 rotation_layout.addWidget(box, i, j)
+        
+        return rotation_layout
 
+
+    def _createQuaternionLayout(self):
         # Quaternion
         quat_layout = QtWidgets.QGridLayout()
         label_width = 15
         labels = ["x:","y:","z:","w:"]
-        self.quat_spinboxes = [QtWidgets.QDoubleSpinBox(self.topLayout) for i in labels]
+        self.quat_spinboxes = [QtWidgets.QDoubleSpinBox(self) for i in labels]
         q_labels = [QtWidgets.QLabel(label) for label in labels]
         j = 0
 
@@ -82,8 +84,13 @@ class Widget(QtWidgets.QDialog):
 
         quat_layout.setHorizontalSpacing(18)
 
+        return quat_layout
+
+    def _createEulerLayout(self):
         # euler
         euler_layout = QtWidgets.QGridLayout()
+        labels = ["x:","y:","z:","w:"]
+        label_width = 15
 
         self.deg =True
         self.units = [QtWidgets.QRadioButton("deg"), QtWidgets.QRadioButton("radians")]
@@ -95,7 +102,7 @@ class Widget(QtWidgets.QDialog):
         for i,unit_box in enumerate(self.units):
             euler_layout.addWidget(unit_box, 0 , i)
 
-        self.euler_spinboxes = [QtWidgets.QDoubleSpinBox(self.topLayout) for i in labels[:-1]]
+        self.euler_spinboxes = [QtWidgets.QDoubleSpinBox(self) for i in labels[:-1]]
         euler_labels = [QtWidgets.QLabel(label) for label in labels[:-1]]
         j = 0
 
@@ -112,8 +119,11 @@ class Widget(QtWidgets.QDialog):
             j += 1
 
 
-        euler_layout.setHorizontalSpacing(18)        
+        euler_layout.setHorizontalSpacing(18)  
 
+        return euler_layout
+
+    def _createLabels(self):
         rotation_label = QtWidgets.QLabel("Rotation Matrix :")
         quat_label = QtWidgets.QLabel("Quaternion :")
         euler_label = QtWidgets.QLabel("Euler ZYX:")
@@ -124,24 +134,8 @@ class Widget(QtWidgets.QDialog):
         quat_label.setFont(bold_font)
         euler_label.setFont(bold_font)
 
-        layout.addWidget(rotation_label,0)
-        layout.addLayout(rotation_layout,1)
-        layout.addWidget(quat_label,2)
-        layout.addLayout(quat_layout,3)
-        layout.addWidget(euler_label,4)
-        layout.addLayout(euler_layout,5)
-        self.topLayout.setLayout(layout)
+        return rotation_label,quat_label, euler_label
     
-    def createBottomLayout(self):
-        bLayout = QtWidgets.QVBoxLayout()
-
-        self.txt = QtWidgets.QTextBrowser(self.bottomLayout)
-        # self.txt.setGeometry(QtCore.QRect(10, 90, 331, 111))
-        self.txt.setGeometry(QtCore.QRect())
-        self.txt.setObjectName("Params")
-        bLayout.addWidget(self.txt, 0)
-        self.bottomLayout.setLayout(bLayout)
-
     def quat_update(self):
         try:
             print("[INFO] quaternion update")
@@ -237,17 +231,7 @@ class Widget(QtWidgets.QDialog):
     def unit_update(self):
         button = self.sender()
         self.deg = (button.unit == "deg" and button.isChecked() )
+    
 
+    
 
-
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
-    q1 = Quaternion( [0.5, 0.5,0.5,0.5] )
-    print(q1.to_rotation_matrix())
-    t1 = [-1.6602861245985938, 0.0,1.732975221562235]
-
-    win = Widget([q1,t1])
-    win.show()
-    app.exec()
