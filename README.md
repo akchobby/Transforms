@@ -13,7 +13,7 @@ Languages it is available in are:
 A snippet of the capability of the library to display quaternions
 
 **GUI**
-
+![](assets/images/gui_sample.png) 
 
 
 **Views**
