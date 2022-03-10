@@ -54,6 +54,7 @@ class TopLayout(QtWidgets.QGroupBox):
             for j, box in enumerate(row):  
                 box.setMinimum(-1.175494e+38) 
                 box.setMaximum(1.175494e+38) 
+                box.setDecimals(15) 
                 rotation_layout.addWidget(box, i, j)
         
         return rotation_layout
@@ -78,6 +79,7 @@ class TopLayout(QtWidgets.QGroupBox):
             j += 1
             box.setMinimum(-1.175494e+38) 
             box.setMaximum(1.175494e+38) 
+            box.setDecimals(15) 
             quat_layout.addWidget(box, 0, j)
             j += 1
 
@@ -115,6 +117,7 @@ class TopLayout(QtWidgets.QGroupBox):
             j += 1
             box.setMinimum(-1.175494e+38) 
             box.setMaximum(1.175494e+38) 
+            box.setDecimals(15) 
             euler_layout.addWidget(box, 1, j)
             j += 1
 
