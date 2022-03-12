@@ -210,10 +210,19 @@ class Quaternion(Rotations):
 
      
 
+        if order == "zyx":
 
-        pitch = math.asin(- max(min(r[2][0],1), -1))
-        yaw = math.atan2(r[1][0],r[0][0]) if math.fabs(r[2][0]) < 1- np.finfo(float).eps else math.atan2(-r[0][1],r[1][1])
-        roll =  math.atan2(r[2][1],r[2][2]) if math.fabs(r[2][0]) < 1- np.finfo(float).eps else 0.0
+            pitch = math.asin(- max(min(r[2][0],1), -1))
+            yaw = math.atan2(r[1][0],r[0][0]) if math.fabs(r[2][0]) < 1- np.finfo(float).eps else math.atan2(-r[0][1],r[1][1])
+            roll =  math.atan2(r[2][1],r[2][2]) if math.fabs(r[2][0]) < 1- np.finfo(float).eps else 0.0
+
+        elif order == "xyz":
+
+            pitch =  math.asin(max(min(r[0][2],1), -1))
+            roll =  math.atan2(-r[1][2],r[2][2]) if math.fabs(r[0][2]) < 1- np.finfo(float).eps else math.atan2(r[2][1],r[1][1])
+            yaw = math.atan2(-r[0][1],r[0][0]) if math.fabs(r[0][2]) < 1- np.finfo(float).eps else 0.0
+
+
 
         return [roll, pitch, yaw] if not deg else list(map(self.rad2deg,[roll, pitch, yaw]))
 
