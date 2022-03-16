@@ -3,7 +3,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from quaternion import *
+from transforms_package.quaternion import *
 
 
 class TopLayout(QtWidgets.QGroupBox):
@@ -36,6 +36,8 @@ class TopLayout(QtWidgets.QGroupBox):
 
         for box in self.euler_spinboxes:
             box.valueChanged.connect(self.euler_update)
+
+        self.order_box.currentIndexChanged.connect(self._order_update)
         
         # Mid layout declaring here for ease of access
         fig = Figure()
@@ -93,6 +95,13 @@ class TopLayout(QtWidgets.QGroupBox):
         euler_layout = QtWidgets.QGridLayout()
         labels = ["x:","y:","z:","w:"]
         label_width = 15
+        self.order_list = ["zyx","xyz"]
+        self.order = self.order_list [0]
+
+        self.order_box = QtWidgets.QComboBox()
+        self.order_box.addItems(self.order_list)
+        euler_layout.addWidget(self.order_box, 0 , 0)
+
 
         self.deg =True
         self.units = [QtWidgets.QRadioButton("deg"), QtWidgets.QRadioButton("radians")]
@@ -102,7 +111,7 @@ class TopLayout(QtWidgets.QGroupBox):
         self.units[1].unit = "radians"
 
         for i,unit_box in enumerate(self.units):
-            euler_layout.addWidget(unit_box, 0 , i)
+            euler_layout.addWidget(unit_box, 1 , i)
 
         self.euler_spinboxes = [QtWidgets.QDoubleSpinBox(self) for i in labels[:-1]]
         euler_labels = [QtWidgets.QLabel(label) for label in labels[:-1]]
@@ -113,12 +122,12 @@ class TopLayout(QtWidgets.QGroupBox):
             # fix width for UI
             euler_labels[i].setFixedWidth(label_width)
 
-            euler_layout.addWidget(euler_labels[i], 1 , j)
+            euler_layout.addWidget(euler_labels[i], 2 , j)
             j += 1
             box.setMinimum(-1.175494e+38) 
             box.setMaximum(1.175494e+38) 
             box.setDecimals(15) 
-            euler_layout.addWidget(box, 1, j)
+            euler_layout.addWidget(box, 2, j)
             j += 1
 
 
@@ -129,7 +138,7 @@ class TopLayout(QtWidgets.QGroupBox):
     def _createLabels(self):
         rotation_label = QtWidgets.QLabel("Rotation Matrix :")
         quat_label = QtWidgets.QLabel("Quaternion :")
-        euler_label = QtWidgets.QLabel("Euler ZYX:")
+        euler_label = QtWidgets.QLabel("Euler intrinsic:")
         
         bold_font = QtGui.QFont()
         bold_font.setBold(True)
@@ -144,25 +153,15 @@ class TopLayout(QtWidgets.QGroupBox):
             print("[INFO] quaternion update")
             q = Quaternion([box.value() for box in self.quat_spinboxes])
 
-            
-
             # update euler
-            for i, val in enumerate(q.to_euler(deg=self.deg)):
-                self.euler_spinboxes[i].blockSignals(True)
-                self.euler_spinboxes[i].setValue(val)
-                self.euler_spinboxes[i].blockSignals(False)
+            self._silent_update_euler(q)
 
             # update rotation mat
-            rotation_matrix = q.to_rotation_matrix()
-            for i,row in enumerate(rotation_matrix):
-                for j, val in enumerate(row):
-                    self.rotation_spinboxes[i][j].blockSignals(True)
-                    self.rotation_spinboxes[i][j].setValue(val)
-                    self.rotation_spinboxes[i][j].blockSignals(False)
+            self._silent_update_rotation(q)
+
             
             # update text box
-            self.txt.clear()
-            self.txt.textCursor().insertText(" ".join(["Unit Quaternion:\t", str(q.to_list()), "\nEuler:\t\t", str(q.to_euler(deg=self.deg))]))
+            self._update_text_display(q)
 
             self.axes.cla()
             plot_quaternions(self.axes, q)
@@ -179,21 +178,13 @@ class TopLayout(QtWidgets.QGroupBox):
             q = Quaternion([[box.value() for box in row ]for row in self.rotation_spinboxes])
 
             # update euler
-            for i, val in enumerate(q.to_euler(deg=self.deg)):
-                self.euler_spinboxes[i].blockSignals(True)
-                self.euler_spinboxes[i].setValue(val)
-                self.euler_spinboxes[i].blockSignals(False)
+            self._silent_update_euler(q)
 
             # update quaternion
-            
-            for i, val in enumerate(q.to_list()):
-                self.quat_spinboxes[i].blockSignals(True)
-                self.quat_spinboxes[i].setValue(val)
-                self.quat_spinboxes[i].blockSignals(False)
-            
+            self._silent_update_quaternion(q)
+
             # update text box
-            self.txt.clear()
-            self.txt.textCursor().insertText(" ".join(["Unit Quaternion:\t", str(q.to_list()), "\nEuler:\t\t", str(q.to_euler(deg=self.deg))]))
+            self._update_text_display(q)
 
             self.axes.cla()
             plot_quaternions(self.axes, q)
@@ -204,25 +195,16 @@ class TopLayout(QtWidgets.QGroupBox):
     def euler_update(self):
         try:
             print("[INFO] euler angles update")
-            q = Quaternion([box.value() for box in self.euler_spinboxes], deg=self.deg)
+            q = Quaternion([box.value() for box in self.euler_spinboxes], deg=self.deg, order=self.order)
 
             # update quaternion
-            for i, val in enumerate(q.to_list()):
-                self.quat_spinboxes[i].blockSignals(True)
-                self.quat_spinboxes[i].setValue(val)
-                self.quat_spinboxes[i].blockSignals(False)
+            self._silent_update_quaternion(q)
 
             # update rotation mat
-            rotation_matrix = q.to_rotation_matrix()
-            for i,row in enumerate(rotation_matrix):
-                for j, val in enumerate(row):
-                    self.rotation_spinboxes[i][j].blockSignals(True)
-                    self.rotation_spinboxes[i][j].setValue(val)
-                    self.rotation_spinboxes[i][j].blockSignals(False)
+            self._silent_update_rotation(q)
             
             # update text box
-            self.txt.clear()
-            self.txt.textCursor().insertText(" ".join(["Unit Quaternion:\t", str(q.to_list()), "\nEuler:\t\t", str(q.to_euler(deg=self.deg))]))
+            self._update_text_display(q)
 
             self.axes.cla()
             plot_quaternions(self.axes, q)
@@ -230,6 +212,43 @@ class TopLayout(QtWidgets.QGroupBox):
         except Exception as e:
             print(e)
             self.axes.cla()
+    
+    def _silent_update_euler(self,q):
+        # update euler
+        for i, val in enumerate(q.to_euler(deg=self.deg, order=self.order)):
+            self.euler_spinboxes[i].blockSignals(True)
+            self.euler_spinboxes[i].setValue(val)
+            self.euler_spinboxes[i].blockSignals(False)
+
+    def _silent_update_quaternion(self,q):
+        # update quaternion
+        for i, val in enumerate(q.to_list()):
+            self.quat_spinboxes[i].blockSignals(True)
+            self.quat_spinboxes[i].setValue(val)
+            self.quat_spinboxes[i].blockSignals(False)
+
+    def _silent_update_rotation(self,q):
+        # update rotation mat
+        rotation_matrix = q.to_rotation_matrix()
+        for i,row in enumerate(rotation_matrix):
+            for j, val in enumerate(row):
+                self.rotation_spinboxes[i][j].blockSignals(True)
+                self.rotation_spinboxes[i][j].setValue(val)
+                self.rotation_spinboxes[i][j].blockSignals(False)
+    
+    def _update_text_display(self,q):
+        self.txt.clear()
+        self.txt.textCursor().insertText(" ".join(["Unit Quaternion:\t", str(q.to_list()), "\nEuler",self.order,":\t\t", str(q.to_euler(deg=self.deg, order=self.order))]))
+    
+    def _order_update(self,i):
+        self.order = self.order_list[i]
+        self.euler_update()
+        #self._silent_update_euler(Quaternion([box.value() for box in self.euler_spinboxes], deg=self.deg, order=self.order))
+
+
+
+
+
     
     def unit_update(self):
         button = self.sender()

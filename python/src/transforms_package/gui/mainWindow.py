@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets,QtCore
-from gui.toplayout import TopLayout
+from transforms_package.gui.toplayout import TopLayout
 
 class Widget(QtWidgets.QDialog):
     def __init__(self):

@@ -1,7 +1,7 @@
 from typing import Tuple
 import numpy as np
 import math 
-from rotations import Rotations
+from transforms_package.rotations import Rotations
 
 # plot libraries
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ DEBUG=False
 
 class Quaternion(Rotations):
 
-    def __init__(self, data, deg=False, rvec=False, point=False, order='xyz', extrinsic=True):
+    def __init__(self, data, deg=False, rvec=False, point=False, order='zyx', extrinsic=False):
         """Constructor takes a list which has 
         - quaternion values in the order x,y,z,w
         - rotation matrix 3x3 [https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/]
@@ -57,7 +57,7 @@ class Quaternion(Rotations):
                     self._quat_from_rotation(data)
                 
                 elif order == "zyx":
-                    data = np.matmul(np.matmul(self.Rx(data[2]),self.Ry(data[1])),self.Rz(data[0])) if extrinsic else np.matmul(np.matmul(self.Rz(data[0]),self.Ry(data[1])),self.Rx(data[2]))
+                    data = np.matmul(np.matmul(self.Rx(data[0]),self.Ry(data[1])),self.Rz(data[2])) if extrinsic else np.matmul(np.matmul(self.Rz(data[2]),self.Ry(data[1])),self.Rx(data[0]))
                     self._quat_from_rotation(data)
                 
                 else:
