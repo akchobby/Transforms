@@ -26,16 +26,19 @@ class TopLayout(QtWidgets.QGroupBox):
 
         for box in self.quat_spinboxes:
             box.valueChanged.connect(self.quat_update)
+            box.wheelEvent = lambda event: None
 
         for row in self.rotation_spinboxes:
             for box in row:
                 box.valueChanged.connect(self.rotation_update)
+                box.wheelEvent = lambda event: None
         
         for unit in self.units:
             unit.toggled.connect(self.unit_update)
 
         for box in self.euler_spinboxes:
             box.valueChanged.connect(self.euler_update)
+            box.wheelEvent = lambda event: None
 
         self.order_box.currentIndexChanged.connect(self._order_update)
         
