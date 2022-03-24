@@ -8,6 +8,8 @@ Languages it is available in are:
 
 [Guide to the python Package](python/README.md)
 
+Linux and Windows binaries are available for the GUI
+
 ## Demo
 
 A snippet of the capability of the library to display quaternions
